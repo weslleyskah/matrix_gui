@@ -8,27 +8,6 @@
 class ExampleLayer : public Walnut::Layer
 {
 public:
-	void PushTableStyle()
-	{
-		// 1. Cor da Borda (Cinza)
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-
-		// 2. Cor das linhas de separação internas (opcional, um cinza mais escuro)
-		ImGui::PushStyleColor(ImGuiCol_TableBorderLight, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_TableBorderStrong, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-
-		// 3. Arredondamento
-		// Nota: CellPadding ajuda a dar "respiro" aos números da matriz
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(8.0f, 4.0f));
-	}
-
-	void PopTableStyle()
-	{
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(3);
-	}
 
 	virtual void OnUIRender() override
 	{
