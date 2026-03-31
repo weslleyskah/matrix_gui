@@ -159,7 +159,7 @@ public:
 			ImGui::EndTable();
 		}
 
-
+		ImGui::Separator();
 
 		// Matriz Inversa = Matriz de Cofatores Transposta * 1/Determinante
 		static float matInv[3][3] = { 0.0f };
