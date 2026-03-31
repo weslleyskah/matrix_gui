@@ -15,7 +15,7 @@ public:
 		ImGui::SetNextWindowPos(viewport->WorkPos);
 		ImGui::SetNextWindowSize(viewport->WorkSize);
 
-		ImGui::Begin("Matrix Operations: Multiplication, Determinant by Laplace, Row Echelon Form");
+		ImGui::Begin("Matrix Operations: Multiplication, Determinant by Laplace, Row Echelon Form, Inverse");
 
 		// Matrizes A e B ------------------------------------------------------------
 		static float matA[3][3] = { 0.0f };
@@ -49,34 +49,14 @@ public:
 			// Matrix Multiplication
 			for (int i = 0; i < 3; i++) { // final loop
 				for (int j = 0; j < 3; j++) { // second loop
-					for (int k = 0; k < 3; k++) { // first loop when K finishes it, matRes pass to the next cell
+					for (int k = 0; k < 3; k++) { // first loop
 						matRes[i][j] += matA[i][k] * matB[k][j];
-						/* 
-						First Row:
-
-						matRes[0][0] = 0
-						matRes[0][0] += matA[0][0] * matB[0][0]
-						matRes[0][0] += matA[0][1] * matB[1][0]
-						matRes[0][0] += matA[0][2] * matB[2][0]
-
-						matRes[0][1] = 0
-						matRes[0][1] += matA[0][0] * matB[0][1]
-						matRes[0][1] += matA[0][1] * matB[1][1]
-						matRes[0][1] += matA[0][2] * matB[2][1]
-
-						matRes[0][2] = 0
-						matRes[0][1] += matA[0][0] * matB[0][2]
-						matRes[0][1] += matA[0][1] * matB[1][2]
-						matRes[0][1] += matA[0][2] * matB[2][2]
-
-						*/
 					}
 				}
 			}
 		}
 
-		// Matrix Result
-		ImGui::Text("Matrix A*B:");
+		ImGui::Text("Matriz AxB:");
 		if (ImGui::BeginTable("ResultTable", 3))
 		{
 			for (int i = 0; i < 3; i++) {
@@ -117,12 +97,11 @@ public:
 
 		if (ImGui::Button("Escalonamento", ImVec2(200, 30)))
 		{
-			// Copia original
 			for (int i = 0; i < 3; i++)
 				for (int j = 0; j < 3; j++)
 					matEsc[i][j] = matA[i][j];
 
-			// Permutação I - Verificar se o pivô [0][0] é zero e trocar
+			// Permutação I - Verificar se o pivô [0][0] é zero e trocar com outras linhas
 			if (matEsc[0][0] == 0)
 			{
 				if (matEsc[1][0] != 0) {
@@ -133,10 +112,10 @@ public:
 				}
 			}
 
-			// Escalonamento I - Zerar abaixo do pivô [0][0]
+			// Escalonamento I - Zerar elementos abaixo do pivô [0][0]
 			if (matEsc[0][0] != 0)
 			{
-				float f1 = matEsc[1][0] / matEsc[0][0]; // fator = Elem / Pivo
+				float f1 = matEsc[1][0] / matEsc[0][0]; // fator = Elem / Pivô
 				float f2 = matEsc[2][0] / matEsc[0][0]; 
 
 				for (int col = 0; col < 3; col++)
@@ -147,7 +126,7 @@ public:
 			}
 
 
-			// Permutação II - Pivô [1][1] (Só precisa olhar para a linha de baixo)
+			// Permutação II - Verificar se o pivô [1][1] é zero e trocar com outras linhas
 			if (matEsc[1][1] == 0)
 			{
 				if (matEsc[2][1] != 0) {
@@ -155,10 +134,10 @@ public:
 				}
 			}
 
-			// Escalonamento II - Zerar abaixo do pivô [1][1]
+			// Escalonamento II - Zerar elementos abaixo do pivô [1][1]
 			if (matEsc[1][1] != 0)
 			{
-				float f3 = matEsc[2][1] / matEsc[1][1]; // Elem / Pivô
+				float f3 = matEsc[2][1] / matEsc[1][1]; 
 
 				for (int col = 0; col < 3; col++)
 				{
@@ -182,19 +161,21 @@ public:
 
 
 
-		// Inversa
-		// Matriz de Cofatores Transposta * 1/Determinante = Matriz Inversa
+		// Matriz Inversa = Matriz de Cofatores Transposta * 1/Determinante
 		static float matInv[3][3] = { 0.0f };
 
 		if (ImGui::Button("Inversa", ImVec2(200, 30)))
 		{
-			static float detA = matA[0][0] * (matA[1][1] * matA[2][2] - matA[1][2] * matA[2][1])
+			// Determinante Laplace
+			static float detA = 
+					+ matA[0][0] * (matA[1][1] * matA[2][2] - matA[1][2] * matA[2][1])
 					- matA[0][1] * (matA[1][0] * matA[2][2] - matA[1][2] * matA[2][0])
 					+ matA[0][2] * (matA[1][0] * matA[2][1] - matA[1][1] * matA[2][0]);
 
-			if (detA != 0) // Só calcula se for inversível
+			if (detA != 0) // Inversível: det != 0 e matriz quadrada [n][n]
 			{
-				float cof[3][3]; // Matriz de Cofatores temporária
+				// Matriz de Cofatores
+				float cof[3][3];
 
 				// Cofator = (-1)^(i+j) * Det(Submatriz)
 				// Linha 0
@@ -212,11 +193,9 @@ public:
 				cof[2][1] = -(matA[0][0] * matA[1][2] - matA[0][2] * matA[1][0]);
 				cof[2][2] = (matA[0][0] * matA[1][1] - matA[0][1] * matA[1][0]);
 
-				// 2. Transpor e Dividir ao mesmo tempo para preencher a matInv
 				for (int i = 0; i < 3; i++) {
 					for (int j = 0; j < 3; j++) {
-						// Transposta e divisão: cof[j][i] / detA
-						matInv[i][j] = cof[j][i] / detA;
+						matInv[i][j] = cof[j][i] / detA; // cof(A)^t * 1/detA = A^-1
 					}
 				}
 			}
@@ -235,12 +214,35 @@ public:
 			ImGui::EndTable();
 		}
 
+		ImGui::Separator();
+	
+		// Matriz NxN ------------------------------------------------------------
+		ImGui::Text("Matriz NxN:");
+		static int n;
+		ImGui::InputInt("Tamanho N", &n);
+
+		// Vector Dynamic 1D to hold the matrix data, accessed as a 2D array: [row * n + col]
+		static std::vector<float> matrixData(n * n, 0.0f);
+		static bool showMatrix = false;
+
+		if(ImGui::Button("Create Matrix"))
+		{
+			matrixData.resize(n * n, 0.0f); 
+			showMatrix = true;
+		}
+
+		if (showMatrix)
+		{
+			CreateMatrixNxNinput("NxN", matrixData, n);
+		}
+
+
 
 		ImGui::End();
 	}
 
 private:
-	// Create a 3x3 matrix input
+	// Create Matrix 
 	void DrawMatrixInput(const char* id, float mat[3][3])
 	{
 		ImGui::PushItemWidth(100.0f); // Size of the Cells
@@ -251,6 +253,22 @@ private:
 				ImGui::PushID(i * 3 + j + (intptr_t)id); // Unique ID for each cell
 				ImGui::InputFloat("##cell", &mat[i][j], 0.0f, 0.0f, "%.1f");
 				if (j < 2) ImGui::SameLine();
+				ImGui::PopID();
+			}
+		}
+		ImGui::PopItemWidth();
+	}
+
+	void CreateMatrixNxNinput(const char* id, std::vector<float>& mat, int n)
+	{
+		ImGui::PushItemWidth(100.0f); // Size of the Cells
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < n; j++)
+			{
+				ImGui::PushID(i * n + j + (intptr_t)id); // Unique ID for each cell
+				ImGui::InputFloat("##cell", &mat[i * n + j], 0.0f, 0.0f, "%.1f");
+				if (j < n - 1) ImGui::SameLine();
 				ImGui::PopID();
 			}
 		}
