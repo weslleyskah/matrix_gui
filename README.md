@@ -1,18 +1,24 @@
 # Matrix GUI
-A simple matrix GUI that calculates the multiplication of both 3x3 matrices, the determinant, the row echelon form, and the inverse.
+
+A simple C++ application for performing 3x3 matrix operations built with the Walnut framework.
 
 ![Screenshot](img/matrix_gui.png)
 
-## Notes
->Run `scripts/Setup.bat` to generate the solution file and open with Visual Studio. 
+>Run `scripts/Setup.bat` to generate the `.sln` file.
 
->Check if Vulkan is linked properly on the properties of the solution file.
+### Dependencies
 
-## Dependencies and Libraries
-- [Walnut](https://github.com/StudioCherno/Walnut)
-- [Visual Studio](https://visualstudio.com) 
+- Visual Studio
 - [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows)
-- [Dear ImGui](https://github.com/ocornut/imgui)
-- [GLFW](https://github.com/glfw/glfw)
-- [stb_image](https://github.com/nothings/stb)
-- [GLM](https://github.com/g-truc/glm)
+- [Walnut](https://github.com/StudioCherno/Walnut)
+- [Dear ImGui](https://github.com/ocornut/imgui) 
+
+### Structure
+
+| | |
+| :--- | :--- |
+| `WalnutApp/src/WalnutApp.cpp` | Application and UI |
+| `Walnut/` | Framework |
+| `vendor/` | Dependencies (Imgui, GLFW, GLM) |
+| `scripts/Setup.bat` | Script to generate the solution file |
+| `premake5.lua` | Build |
