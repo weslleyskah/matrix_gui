@@ -15,6 +15,9 @@ public:
 		ImGui::SetNextWindowPos(viewport->WorkPos);
 		ImGui::SetNextWindowSize(viewport->WorkSize);
 
+		PushWindowStyle();
+		PushButtonStyle();
+
 		ImGui::Begin("Matrix Operations: Multiplication, Determinant by Laplace, Row Echelon Form, Inverse");
 
 		// Matrizes A e B ------------------------------------------------------------
@@ -57,17 +60,7 @@ public:
 		}
 
 		ImGui::Text("Matriz AxB:");
-		if (ImGui::BeginTable("ResultTable", 3))
-		{
-			for (int i = 0; i < 3; i++) {
-				ImGui::TableNextRow();
-				for (int j = 0; j < 3; j++) {
-					ImGui::TableSetColumnIndex(j);
-					ImGui::Text("%.2f", matRes[i][j]);
-				}
-			}
-			ImGui::EndTable();
-		}
+		DrawMatrixResult("matRes", matRes);
 		// -----------------------------------------------
 
 
@@ -147,17 +140,7 @@ public:
 		}
 
 		ImGui::Text("Escalonamento da Matriz A:");
-		if (ImGui::BeginTable("ResultTable2", 3))
-		{
-			for (int i = 0; i < 3; i++) {
-				ImGui::TableNextRow();
-				for (int j = 0; j < 3; j++) {
-					ImGui::TableSetColumnIndex(j);
-					ImGui::Text("%.2f", matEsc[i][j]);
-				}
-			}
-			ImGui::EndTable();
-		}
+		DrawMatrixResult("matEsc", matEsc);
 
 		ImGui::Separator();
 
@@ -202,77 +185,168 @@ public:
 		}
 
 		ImGui::Text("Inversa da Matriz A:");
-		if (ImGui::BeginTable("ResultTable3", 3))
-		{
-			for (int i = 0; i < 3; i++) {
-				ImGui::TableNextRow();
-				for (int j = 0; j < 3; j++) {
-					ImGui::TableSetColumnIndex(j);
-					ImGui::Text("%.2f", matInv[i][j]);
-				}
-			}
-			ImGui::EndTable();
-		}
+		DrawMatrixResult("matInv", matInv);
 
 		ImGui::Separator();
 	
-		// Matriz NxN ------------------------------------------------------------
-		ImGui::Text("Matriz NxN:");
-		static int n;
-		ImGui::InputInt("Tamanho N", &n);
-
-		// Vector Dynamic 1D to hold the matrix data, accessed as a 2D array: [row * n + col]
-		static std::vector<float> matrixData(n * n, 0.0f);
-		static bool showMatrix = false;
-
-		if(ImGui::Button("Create Matrix"))
-		{
-			matrixData.resize(n * n, 0.0f); 
-			showMatrix = true;
-		}
-
-		if (showMatrix)
-		{
-			CreateMatrixNxNinput("NxN", matrixData, n);
-		}
+		// Matriz MxN ------------------------------------------------------------
 
 
+		PopButtonStyle();
 
 		ImGui::End();
+
+		PopWindowStyle();
 	}
 
 private:
+	// Buttons
+	void PushButtonStyle()
+	{
+	    ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 80, 80, 80));
+	    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(120, 120, 120, 120));
+	    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(160, 160, 160, 150));
+	    ImGui::PushStyleColor(ImGuiCol_Text,          IM_COL32(220, 220, 220, 255));
+	    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+	    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+	}
+	
+	void PopButtonStyle()
+	{
+	    ImGui::PopStyleVar(2);
+	    ImGui::PopStyleColor(4);
+	}
+
+	// Window
+	void PushWindowStyle()
+	{
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(30, 30, 30, 220)); // dark background
+		ImGui::PushStyleColor(ImGuiCol_TitleBg, IM_COL32(40, 40, 40, 255));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, IM_COL32(55, 55, 55, 255));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, IM_COL32(30, 30, 30, 200));
+		ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(80, 80, 80, 60));
+		ImGui::PushStyleColor(ImGuiCol_ResizeGrip, IM_COL32(120, 120, 120, 60));
+		ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, IM_COL32(150, 150, 150, 120));
+		ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, IM_COL32(180, 180, 180, 180));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16.0f, 16.0f));
+	}
+
+	void PopWindowStyle()
+	{
+		ImGui::PopStyleVar(3);
+		ImGui::PopStyleColor(8);
+	}
+
 	// Create Matrix 
 	void DrawMatrixInput(const char* id, float mat[3][3])
 	{
-		ImGui::PushItemWidth(100.0f); // Size of the Cells
+		const float cellWidth = 60.0f;
+		const float cellSpacingX = 4.0f;
+		const float cellSpacingY = 4.0f;
+		const float cellHeight = ImGui::GetFrameHeight();
+		const float rounding = 4.0f;
+		const ImU32 cellBg = IM_COL32(120, 120, 120, 40);
+		const ImU32 cellBgHover = IM_COL32(120, 120, 120, 65);
+		const ImU32 cellBgActive = IM_COL32(120, 120, 120, 90);
+
+		float gridW = 3 * cellWidth + 2 * cellSpacingX;
+		float gridH = 3 * cellHeight + 2 * cellSpacingY;
+
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImVec2      origin = ImGui::GetCursorScreenPos();
+
+		ImGui::Dummy(ImVec2(gridW, gridH));
+		ImGui::SetCursorScreenPos(origin);
+
+		// Override ImGui's own input background colors
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(0, 0, 0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, rounding);
+
+		ImGui::PushItemWidth(cellWidth);
 		for (int i = 0; i < 3; i++)
 		{
 			for (int j = 0; j < 3; j++)
 			{
-				ImGui::PushID(i * 3 + j + (intptr_t)id); // Unique ID for each cell
-				ImGui::InputFloat("##cell", &mat[i][j], 0.0f, 0.0f, "%.1f");
-				if (j < 2) ImGui::SameLine();
+				float cx = origin.x + j * (cellWidth + cellSpacingX);
+				float cy = origin.y + i * (cellHeight + cellSpacingY);
+
+				// Determine which bg shade to use based on hover/active state
+				ImVec2 cellMin(cx, cy);
+				ImVec2 cellMax(cx + cellWidth, cy + cellHeight);
+				ImVec2 mouse = ImGui::GetMousePos();
+				bool hovered = mouse.x >= cellMin.x && mouse.x <= cellMax.x &&
+					mouse.y >= cellMin.y && mouse.y <= cellMax.y;
+				bool active = hovered && ImGui::IsMouseDown(0);
+
+				dl->AddRectFilled(cellMin, cellMax,
+					active ? cellBgActive : hovered ? cellBgHover : cellBg,
+					rounding);
+
+				ImGui::SetCursorScreenPos(cellMin);
+				ImGui::PushID(i * 3 + j + (intptr_t)id);
+				ImGui::InputFloat("##cell", &mat[i][j], 0.0f, 0.0f, "%.2f");
 				ImGui::PopID();
 			}
 		}
 		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SetCursorScreenPos(ImVec2(origin.x, origin.y + gridH));
+		ImGui::Dummy(ImVec2(gridW, 0.0f));
 	}
 
-	void CreateMatrixNxNinput(const char* id, std::vector<float>& mat, int n)
+	// Matrix Result
+	void DrawMatrixResult(const char* id, float mat[3][3])
 	{
-		ImGui::PushItemWidth(100.0f); // Size of the Cells
-		for (int i = 0; i < n; i++)
+		const float cellWidth = 60.0f;
+		const float cellSpacingX = 4.0f;
+		const float cellSpacingY = 4.0f;
+		const float cellHeight = ImGui::GetFrameHeight();
+		const float rounding = 4.0f;
+		const ImU32 cellBg = IM_COL32(120, 120, 120, 25); // slightly dimmer than input
+
+		float gridW = 3 * cellWidth + 2 * cellSpacingX;
+		float gridH = 3 * cellHeight + 2 * cellSpacingY;
+
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImVec2      origin = ImGui::GetCursorScreenPos();
+
+		ImGui::Dummy(ImVec2(gridW, gridH));
+		ImGui::SetCursorScreenPos(origin);
+
+		for (int i = 0; i < 3; i++)
 		{
-			for (int j = 0; j < n; j++)
+			for (int j = 0; j < 3; j++)
 			{
-				ImGui::PushID(i * n + j + (intptr_t)id); // Unique ID for each cell
-				ImGui::InputFloat("##cell", &mat[i * n + j], 0.0f, 0.0f, "%.1f");
-				if (j < n - 1) ImGui::SameLine();
-				ImGui::PopID();
+				float cx = origin.x + j * (cellWidth + cellSpacingX);
+				float cy = origin.y + i * (cellHeight + cellSpacingY);
+
+				ImVec2 cellMin(cx, cy);
+				ImVec2 cellMax(cx + cellWidth, cy + cellHeight);
+
+				dl->AddRectFilled(cellMin, cellMax, cellBg, rounding);
+
+				// Center the text inside the cell
+				char buf[32];
+				snprintf(buf, sizeof(buf), "%.2f", mat[i][j]);
+				ImVec2 textSize = ImGui::CalcTextSize(buf);
+				ImVec2 textPos(
+					cx + (cellWidth - textSize.x) * 0.5f,
+					cy + (cellHeight - textSize.y) * 0.5f
+				);
+
+				dl->AddText(textPos, ImGui::GetColorU32(ImGuiCol_Text), buf);
 			}
 		}
-		ImGui::PopItemWidth();
+
+		ImGui::SetCursorScreenPos(ImVec2(origin.x, origin.y + gridH));
+		ImGui::Dummy(ImVec2(gridW, 0.0f));
 	}
 };
 
