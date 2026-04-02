@@ -6,6 +6,9 @@
 #include <vector>
 #include <string>
 #include <numeric>
+#include <cmath>
+#include <stdexcept>
+#include "algoritmos.h"
 
 struct Fraction {
 	int num = 0;
@@ -149,12 +152,14 @@ public:
 			else ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "Matriz não inversível (Det = 0)");
 		}
 
-		if (ImGui::CollapsingHeader("Matrix MxN Configuration"))
+
+		// Matriz MxN 
+		if (ImGui::CollapsingHeader("Matrix MxN"))
 		{
 			static int rows = 3, cols = 3;
 			static std::vector<std::vector<float>> matMN(rows, std::vector<float>(cols, 0.0f));
-			static std::vector<std::vector<float>> matMNRes;
-			static bool hasRes = false;
+			static float detMN = 0.0f;
+			static bool hasDetMN = false;
 
 			int prevRows = rows, prevCols = cols;
 			ImGui::SetNextItemWidth(80); ImGui::InputInt("Rows##mn", &rows);
@@ -164,24 +169,36 @@ public:
 			if (rows < 1) rows = 1; if (cols < 1) cols = 1;
 			if (rows != prevRows || cols != prevCols) {
 				matMN.assign(rows, std::vector<float>(cols, 0.0f));
-				hasRes = false;
+				hasDetMN = false;
 			}
-
-			ImGui::Text("Input Matrix:");
+			
 			DrawMatrixInput("MN", matMN, rows, cols);
 
-			if (ImGui::Button("Transpose##mn", ImVec2(200, 30)))
+			if (rows == cols)
 			{
-				matMNRes.assign(cols, std::vector<float>(rows));
-				for (int i = 0; i < rows; i++)
-					for (int j = 0; j < cols; j++)
-						matMNRes[j][i] = matMN[i][j];
-				hasRes = true;
-			}
+				if (ImGui::Button("Determinante (Eliminação de Gauss)##mn", ImVec2(ImGui::CalcTextSize("Determinante (Eliminação de Gauss)").x + 16, 30)))
+				{
+					int n = rows;
+					Matrix mat(n, std::vector<float>(n));
+					for (int i = 0; i < n; i++)
+						for (int j = 0; j < n; j++)
+							mat[i][j] = matMN[i][j];
 
-			if (hasRes) {
-				ImGui::Text("Result (Transpose):");
-				DrawMatrixResult("MNRes", matMNRes);
+					try {
+						detMN = (float)determinant(mat);
+						hasDetMN = true;
+					}
+					catch (const std::exception& e) {
+						hasDetMN = false;
+					}
+				}
+				if (hasDetMN) {
+					ImGui::Text("Determinante (Gauss): %.2f", detMN);
+				}
+			}
+			else
+			{
+				ImGui::TextDisabled("Determinante: Apenas para matrizes quadradas.");
 			}
 		}
 
