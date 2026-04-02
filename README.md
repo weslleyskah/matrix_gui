@@ -1,6 +1,6 @@
 # Matrix GUI
 
-A simple C++ application for performing 3x3 matrix operations built with the Walnut framework.
+A simple C++ application to perform matrix operations built with the Walnut framework.
 
 ![Screenshot](img/matrix_gui.png)
 
