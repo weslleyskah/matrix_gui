@@ -44,7 +44,7 @@ public:
 
 		ImGui::Begin("Matrix Operations: Multiplication, Determinant, Row Echelon, Inverse");
 
-		if (ImGui::CollapsingHeader("3x3 Matrix Operations", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::CollapsingHeader("Matrix 3x3", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			static float matA[3][3] = { 0.0f };
 			static float matB[3][3] = { 0.0f };
@@ -179,7 +179,7 @@ public:
 				if (ImGui::Button("Determinante (Eliminação de Gauss)##mn", ImVec2(ImGui::CalcTextSize("Determinante (Eliminação de Gauss)").x + 16, 30)))
 				{
 					int n = rows;
-					Matrix mat(n, std::vector<float>(n));
+					std::vector<std::vector<float>> mat(n, std::vector<float>(n));
 					for (int i = 0; i < n; i++)
 						for (int j = 0; j < n; j++)
 							mat[i][j] = matMN[i][j];

@@ -4,14 +4,12 @@
 #include <cmath>
 #include <stdexcept>
 
-using Matrix = std::vector<std::vector<float>>;
-
-/* 
-   Elimnação de Gauss:
-   Calcula o determinante de uma matriz quadrada usando o método de Eliminação de Gauss
-   com pivotamento parcial para maior estabilidade numérica.
- */
-float determinant(Matrix mat) {
+/* Eliminação de Gauss
+Para matrizes quadradas, o determinante é o produto da diagonal principal 
+após o escalonamento triangular superior. 
+Cada troca de linha inverte o sinal do determinante.
+*/
+float determinant(std::vector<std::vector<float>> mat) {
 	int n = mat.size();
 
 	// Valida se é quadrada
@@ -36,7 +34,7 @@ float determinant(Matrix mat) {
 		}
 
 		// Pivot zero = determinante é 0
-		if (std::abs(mat[col][col]) < 1e-12)
+		if (mat[col][col] == 0)
 			return 0.0;
 
 		det *= mat[col][col];
