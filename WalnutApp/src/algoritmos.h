@@ -53,3 +53,33 @@ float determinant(std::vector<std::vector<float>> mat) {
 
 	return det;
 }
+
+// Mutiplication MxN Matrices
+
+std::vector <std::vector<float>> multiplyMatrices(const std::vector<std::vector<float>>& A, const std::vector<std::vector<float>>& B) {
+	bool valid = true;
+
+	int m1 = A.size();    // lines
+	int n1 = A[0].size(); // columns
+
+	int m2 = B.size();
+	int n2 = B[0].size();
+
+	if (n1 != m2) {
+		valid = false;
+		throw std::invalid_argument("The number of columns of the first matrix must be equal to the number of lines of the second matrix.");
+	}
+
+	std::vector <std::vector<float>> C(m1, std::vector<float>(n2, 0));
+
+	for (int linA = 0; linA < m1; linA++) {
+		for (int colB = 0; colB < n2; colB++) {
+			for (int k = 0; k < n1; k++) {       // k == colA or linB
+				C[linA][colB] += A[linA][k] * B[k][colB];
+			}
+		}
+	}
+
+	return C;
+
+}

@@ -156,10 +156,16 @@ public:
 		// Matriz MxN 
 		if (ImGui::CollapsingHeader("Matrix MxN"))
 		{
+			ImGui::Columns(2, "MxNInputs", false);
+
 			static int rows = 3, cols = 3;
 			static std::vector<std::vector<float>> matMN(rows, std::vector<float>(cols, 0.0f));
 			static float detMN = 0.0f;
-			static bool hasDetMN = false;
+			static bool hasDetMN = true;
+			static bool detComputed = false;
+
+			static bool multiplicationValid = true;
+			static std::vector<std::vector<float>> matMN3;
 
 			int prevRows = rows, prevCols = cols;
 			ImGui::SetNextItemWidth(80); ImGui::InputInt("Rows##mn", &rows);
@@ -169,14 +175,64 @@ public:
 			if (rows < 1) rows = 1; if (cols < 1) cols = 1;
 			if (rows != prevRows || cols != prevCols) {
 				matMN.assign(rows, std::vector<float>(cols, 0.0f));
-				hasDetMN = false;
+				matMN3.clear();
+				multiplicationValid = true;
+				hasDetMN = true;
+				detComputed = false;
 			}
 			
 			DrawMatrixInput("MN", matMN, rows, cols);
 
-			if (rows == cols)
+			// Second matrix MxN
+
+			ImGui::NextColumn();
+
+			static int rows2 = 3, cols2 = 3;
+			static std::vector<std::vector<float>> matMN2(rows2, std::vector<float>(cols2, 0.0f));
+
+			int prevRows2 = rows2, prevCols2 = cols2;
+			ImGui::SetNextItemWidth(80); ImGui::InputInt("Rows##mn2", &rows2);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(80); ImGui::InputInt("Columns##mn2", &cols2);
+
+			if (rows2 < 1) rows2 = 1; if (cols2 < 1) cols2 = 1;
+			if (rows2 != prevRows2 || cols2 != prevCols2) {
+				matMN2.assign(rows2, std::vector<float>(cols2, 0.0f));
+				matMN3.clear();
+				multiplicationValid = true;
+			}
+
+			DrawMatrixInput("MN2", matMN2, rows2, cols2);
+
+			// Multiplication MxN
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+
+			if (ImGui::Button("Multiplicar Matrizes##mn", ImVec2(200, 30)))
 			{
-				if (ImGui::Button("Determinante (Eliminação de Gauss)##mn", ImVec2(ImGui::CalcTextSize("Determinante (Eliminação de Gauss)").x + 16, 30)))
+				try {
+					matMN3 = multiplyMatrices(matMN, matMN2);
+					multiplicationValid = true;
+				}
+				catch (const std::exception& e) {
+					multiplicationValid = false;
+				}
+			}
+			if (multiplicationValid)
+			{
+				DrawMatrixResult("matMN3", matMN3);
+			}
+			else {
+				ImGui::TextDisabled("Multiplicação inválida: Colunas da Matriz A devem ser iguais às Linhas da Matriz B.");
+			}
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+
+			if (ImGui::Button("Determinante (Eliminação de Gauss)##mn", ImVec2(ImGui::CalcTextSize("Determinante (Eliminação de Gauss)").x + 16, 30)))
+			{
+				if (rows == cols)
 				{
 					int n = rows;
 					std::vector<std::vector<float>> mat(n, std::vector<float>(n));
@@ -187,18 +243,26 @@ public:
 					try {
 						detMN = (float)determinant(mat);
 						hasDetMN = true;
+						detComputed = true;
 					}
 					catch (const std::exception& e) {
 						hasDetMN = false;
+						detComputed = false;
 					}
 				}
-				if (hasDetMN) {
-					ImGui::Text("Determinante (Gauss): %.2f", detMN);
+				else
+				{
+					hasDetMN = false;
+					detComputed = false;
 				}
 			}
-			else
-			{
+
+			if (!hasDetMN) {
 				ImGui::TextDisabled("Determinante: Apenas para matrizes quadradas.");
+			}
+			else if (detComputed)
+			{
+				ImGui::Text("Determinante (Gauss): %.2f", detMN);
 			}
 		}
 
