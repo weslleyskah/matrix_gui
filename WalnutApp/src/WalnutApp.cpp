@@ -46,9 +46,9 @@ public:
 
 		if (ImGui::CollapsingHeader("Matrix 3x3", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			static float matA[3][3] = { 0.0f };
-			static float matB[3][3] = { 0.0f };
-			static float matRes[3][3] = { 0.0f };
+			static double matA[3][3] = { 0.0 };
+			static double matB[3][3] = { 0.0 };
+			static double matRes[3][3] = { 0.0 };
 
 			ImGui::Columns(2, "Inputs", false);
 			ImGui::Text("Matrix A");
@@ -65,7 +65,7 @@ public:
 			{
 				for (int i = 0; i < 3; i++)
 					for (int j = 0; j < 3; j++)
-						matRes[i][j] = 0;
+						matRes[i][j] = 0.0;
 
 				for (int i = 0; i < 3; i++)
 					for (int j = 0; j < 3; j++)
@@ -77,7 +77,7 @@ public:
 			DrawMatrixResult("matRes", matRes);
 
 			ImGui::Separator();
-			static float detA = 0.0f;
+			static double detA = 0.0;
 			if (ImGui::Button("Laplace", ImVec2(200, 30)))
 			{
 				detA = matA[0][0] * (matA[1][1] * matA[2][2] - matA[1][2] * matA[2][1])
@@ -87,7 +87,7 @@ public:
 			ImGui::Text("Determinante da Matriz A: %.2f", detA);
 
 			ImGui::Separator();
-			static float matEsc[3][3] = { 0.0f };
+			static double matEsc[3][3] = { 0.0 };
 			if (ImGui::Button("Escalonamento", ImVec2(200, 30)))
 			{
 				for (int i = 0; i < 3; i++)
@@ -105,7 +105,7 @@ public:
 					}
 					if (matEsc[i][i] != 0) {
 						for (int k = i + 1; k < 3; k++) {
-							float factor = matEsc[k][i] / matEsc[i][i];
+							double factor = matEsc[k][i] / matEsc[i][i];
 							for (int col = i; col < 3; col++) matEsc[k][col] -= factor * matEsc[i][col];
 						}
 					}
@@ -119,27 +119,27 @@ public:
 			static bool hasInverse = false;
 			if (ImGui::Button("Inversa", ImVec2(200, 30)))
 			{
-				float detVal = matA[0][0] * (matA[1][1] * matA[2][2] - matA[1][2] * matA[2][1])
+				double detVal = matA[0][0] * (matA[1][1] * matA[2][2] - matA[1][2] * matA[2][1])
 					- matA[0][1] * (matA[1][0] * matA[2][2] - matA[1][2] * matA[2][0])
 					+ matA[0][2] * (matA[1][0] * matA[2][1] - matA[1][1] * matA[2][0]);
 
-				if (std::abs(detVal) > 0.0001f)
+				if (std::abs(detVal) > 0.0001)
 				{
-					float cof[3][3];
+					double cof[3][3];
 					cof[0][0] = (matA[1][1] * matA[2][2] - matA[1][2] * matA[2][1]);
 					cof[0][1] = -(matA[1][0] * matA[2][2] - matA[1][2] * matA[2][0]);
 					cof[0][2] = (matA[1][0] * matA[2][1] - matA[1][1] * matA[2][0]);
 					cof[1][0] = -(matA[0][1] * matA[2][2] - matA[0][2] * matA[2][1]);
 					cof[1][1] = (matA[0][0] * matA[2][2] - matA[0][2] * matA[2][0]);
-					cof[1][2] = -(matA[0][0] * matA[2][1] - matA[0][1] * matA[2][0]);
+					cof[1][2] = -(matA[0][0] * matA[2][1] - matA[0][1] * matA[1][0]);
 					cof[2][0] = (matA[0][1] * matA[1][2] - matA[0][2] * matA[1][1]);
 					cof[2][1] = -(matA[0][0] * matA[1][2] - matA[0][2] * matA[1][0]);
 					cof[2][2] = (matA[0][0] * matA[1][1] - matA[0][1] * matA[1][0]);
 
 					for (int i = 0; i < 3; i++) {
 						for (int j = 0; j < 3; j++) {
-							matInv[i][j].num = (int)std::round(cof[j][i] * 100.0f);
-							matInv[i][j].den = (int)std::round(detVal * 100.0f);
+							matInv[i][j].num = (int)std::round(cof[j][i] * 100.0);
+							matInv[i][j].den = (int)std::round(detVal * 100.0);
 							matInv[i][j].Simplify();
 						}
 					}
@@ -149,7 +149,7 @@ public:
 			}
 			ImGui::Text("Inversa da Matriz A (Frações):");
 			if (hasInverse) DrawMatrixResultFrac("matInv", matInv);
-			else ImGui::TextColored(ImVec4(1, 0.4f, 0.4f, 1), "Matriz não inversível (Det = 0)");
+			else ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Matriz não inversível (Det = 0)");
 		}
 
 
@@ -159,13 +159,15 @@ public:
 			ImGui::Columns(2, "MxNInputs", false);
 
 			static int rows = 3, cols = 3;
-			static std::vector<std::vector<float>> matMN(rows, std::vector<float>(cols, 0.0f));
-			static float detMN = 0.0f;
+			static std::vector<std::vector<double>> matMN(rows, std::vector<double>(cols, 0.0));
+			static double detMN = 0.0;
 			static bool hasDetMN = true;
 			static bool detComputed = false;
 
 			static bool multiplicationValid = true;
-			static std::vector<std::vector<float>> matMN3;
+			static std::vector<std::vector<double>> matMN3;
+
+			static std::vector<std::vector<double>> matMN4;
 
 			int prevRows = rows, prevCols = cols;
 			ImGui::SetNextItemWidth(80); ImGui::InputInt("Rows##mn", &rows);
@@ -174,7 +176,7 @@ public:
 
 			if (rows < 1) rows = 1; if (cols < 1) cols = 1;
 			if (rows != prevRows || cols != prevCols) {
-				matMN.assign(rows, std::vector<float>(cols, 0.0f));
+				matMN.assign(rows, std::vector<double>(cols, 0.0));
 				matMN3.clear();
 				multiplicationValid = true;
 				hasDetMN = true;
@@ -183,12 +185,12 @@ public:
 			
 			DrawMatrixInput("MN", matMN, rows, cols);
 
-			// Second matrix MxN
+			// Second Matrix MxN
 
 			ImGui::NextColumn();
 
 			static int rows2 = 3, cols2 = 3;
-			static std::vector<std::vector<float>> matMN2(rows2, std::vector<float>(cols2, 0.0f));
+			static std::vector<std::vector<double>> matMN2(rows2, std::vector<double>(cols2, 0.0));
 
 			int prevRows2 = rows2, prevCols2 = cols2;
 			ImGui::SetNextItemWidth(80); ImGui::InputInt("Rows##mn2", &rows2);
@@ -197,7 +199,7 @@ public:
 
 			if (rows2 < 1) rows2 = 1; if (cols2 < 1) cols2 = 1;
 			if (rows2 != prevRows2 || cols2 != prevCols2) {
-				matMN2.assign(rows2, std::vector<float>(cols2, 0.0f));
+				matMN2.assign(rows2, std::vector<double>(cols2, 0.0));
 				matMN3.clear();
 				multiplicationValid = true;
 			}
@@ -227,6 +229,17 @@ public:
 				ImGui::TextDisabled("Multiplicação inválida: Colunas da Matriz A devem ser iguais às Linhas da Matriz B.");
 			}
 
+			// Escalonamento MxN
+			ImGui::Columns(1);
+			ImGui::Separator();
+
+			if (ImGui::Button("Escalonar##mn", ImVec2(ImGui::CalcTextSize("Escalonar").x + 16, 30)))
+			{
+				matMN4 = escalonar(matMN);
+			}
+			DrawMatrixResult("matMN4", matMN4);
+
+			// Determinante MxN
 			ImGui::Columns(1);
 			ImGui::Separator();
 
@@ -235,13 +248,13 @@ public:
 				if (rows == cols)
 				{
 					int n = rows;
-					std::vector<std::vector<float>> mat(n, std::vector<float>(n));
+					std::vector<std::vector<double>> mat(n, std::vector<double>(n));
 					for (int i = 0; i < n; i++)
 						for (int j = 0; j < n; j++)
 							mat[i][j] = matMN[i][j];
 
 					try {
-						detMN = (float)determinant(mat);
+						detMN = determinant(mat);
 						hasDetMN = true;
 						detComputed = true;
 					}
@@ -290,7 +303,7 @@ private:
 
 	void PopWindowStyle() { ImGui::PopStyleVar(2); ImGui::PopStyleColor(); }
 
-	void DrawMatrixInput(const char* id, float mat[3][3]) {
+	void DrawMatrixInput(const char* id, double mat[3][3]) {
 		static int nextFocusRow = -1, nextFocusCol = -1;
 		static const char* activeId = nullptr;
 		const float cellWidth = 60.0f;
@@ -309,7 +322,7 @@ private:
 					nextFocusRow = -1; nextFocusCol = -1;
 				}
 				ImGui::SetNextItemWidth(cellWidth);
-				ImGui::InputFloat("##cell", &mat[i][j], 0.0f, 0.0f, "%.2f");
+				ImGui::InputDouble("##cell", &mat[i][j], 0.0, 0.0, "%.2f");
 				if (ImGui::IsItemFocused()) {
 					activeId = id;
 					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i; nextFocusCol = j - 1; }
@@ -325,7 +338,7 @@ private:
 		ImGui::PopStyleColor(3);
 	}
 
-	void DrawMatrixInput(const char* id, std::vector<std::vector<float>>& mat, int rows, int cols) {
+	void DrawMatrixInput(const char* id, std::vector<std::vector<double>>& mat, int rows, int cols) {
 		static int nextFocusRow = -1, nextFocusCol = -1;
 		static const char* activeId = nullptr;
 		const float cellWidth = 60.0f;
@@ -344,7 +357,7 @@ private:
 					nextFocusRow = -1; nextFocusCol = -1;
 				}
 				ImGui::SetNextItemWidth(cellWidth);
-				ImGui::InputFloat("##cell", &mat[i][j], 0.0f, 0.0f, "%.2f");
+				ImGui::InputDouble("##cell", &mat[i][j], 0.0, 0.0, "%.2f");
 				if (ImGui::IsItemFocused()) {
 					activeId = id;
 					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i; nextFocusCol = j - 1; }
@@ -360,7 +373,7 @@ private:
 		ImGui::PopStyleColor(3);
 	}
 
-	void DrawMatrixResult(const char* id, float mat[3][3]) {
+	void DrawMatrixResult(const char* id, double mat[3][3]) {
 		const float cellWidth = 60.0f;
 		const float cellHeight = ImGui::GetFrameHeight();
 		ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -392,7 +405,7 @@ private:
 		ImGui::Dummy(ImVec2(190, 3 * (cellHeight + 4)));
 	}
 
-	void DrawMatrixResult(const char* id, const std::vector<std::vector<float>>& mat) {
+	void DrawMatrixResult(const char* id, const std::vector<std::vector<double>>& mat) {
 		if (mat.empty()) return;
 		const float cellWidth = 60.0f;
 		const float cellHeight = ImGui::GetFrameHeight();

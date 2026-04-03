@@ -9,7 +9,7 @@ Para matrizes quadradas, o determinante é o produto da diagonal principal
 após o escalonamento triangular superior. 
 Cada troca de linha inverte o sinal do determinante.
 */
-float determinant(std::vector<std::vector<float>> mat) {
+double determinant(std::vector<std::vector<double>> mat) {
 	int n = mat.size();
 
 	// Valida se é quadrada
@@ -17,7 +17,7 @@ float determinant(std::vector<std::vector<float>> mat) {
 		if ((int)row.size() != n)
 			throw std::invalid_argument("Matriz não é quadrada!");
 
-	float det = 1.0f;
+	double det = 1.0;
 	int swaps = 0;
 
 	for (int col = 0; col < n; col++) {
@@ -56,7 +56,7 @@ float determinant(std::vector<std::vector<float>> mat) {
 
 // Mutiplication MxN Matrices
 
-std::vector <std::vector<float>> multiplyMatrices(const std::vector<std::vector<float>>& A, const std::vector<std::vector<float>>& B) {
+std::vector <std::vector<double>> multiplyMatrices(const std::vector<std::vector<double>>& A, const std::vector<std::vector<double>>& B) {
 	bool valid = true;
 
 	int m1 = A.size();    // lines
@@ -70,7 +70,7 @@ std::vector <std::vector<float>> multiplyMatrices(const std::vector<std::vector<
 		throw std::invalid_argument("The number of columns of the first matrix must be equal to the number of lines of the second matrix.");
 	}
 
-	std::vector <std::vector<float>> C(m1, std::vector<float>(n2, 0));
+	std::vector <std::vector<double>> C(m1, std::vector<double>(n2, 0.0));
 
 	for (int linA = 0; linA < m1; linA++) {
 		for (int colB = 0; colB < n2; colB++) {
@@ -82,4 +82,44 @@ std::vector <std::vector<float>> multiplyMatrices(const std::vector<std::vector<
 
 	return C;
 
+}
+
+// Escalonamento de Matriz (Triangularização)
+
+std::vector<std::vector<double>> escalonar(std::vector<std::vector<double>> mat) {
+
+	int n = mat.size();
+	int cols = mat[0].size();
+	// A última coluna é o vetor de termos independentes
+
+	for (int col = 0; col < cols-1; col++) {
+
+		// Pivotamento parcial: acha a linha com maior valor absoluto na coluna
+		int pivotRow = col;
+		for (int row = col + 1; row < n; row++)
+			if (std::abs(mat[row][col]) > std::abs(mat[pivotRow][col]))
+				pivotRow = row;
+
+		// Troca de linhas
+		if (pivotRow != col) {
+			std::swap(mat[col], mat[pivotRow]);
+		}
+
+		// Se o pivot encontrado for zero, a coluna já está escalonada com zero abaixo, então continua para a próxima coluna
+		if (mat[col][col] == 0 || std::abs(mat[col][col]) < 1e-10)
+			continue;
+
+		// Triangulação: Transformar em zero abaixo do pivot
+		for (int row = col + 1; row < n; row++) {
+			double factor = mat[row][col] / mat[col][col];
+			for (int k = col; k < cols; k++) {
+				mat[row][k] -= factor * mat[col][k]; // line2 = line2 - factor * line1
+				if (std::abs(mat[row][k]) < 1e-6) {
+					mat[row][k] = 0.0;
+				}
+			}
+		}
+
+	}
+	return mat;
 }
