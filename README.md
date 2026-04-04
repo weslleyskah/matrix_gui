@@ -4,14 +4,23 @@ A simple C++ application to perform matrix operations built with the Walnut fram
 
 ![Screenshot](img/matrix_gui.png)
 
->Run `scripts/Setup.bat` to generate the `.sln` file.
+### Download
+
+- [matrix_gui.exe](https://github.com/weslleyskah/matrix_gui/releases)
+
+### Build
+
+- Run `scripts/Setup.bat` to generate the `.sln` file.
+
+- Open the `.sln` file and run the code on Visual Studio.
 
 ### Dependencies
 
 - Visual Studio
 - [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows)
 - [Walnut](https://github.com/StudioCherno/Walnut)
-- [Dear ImGui](https://github.com/ocornut/imgui) 
+- [ImGui](https://github.com/ocornut/imgui) 
+- [Eigen](https://libeigen.gitlab.io/)
 
 ### Structure
 
