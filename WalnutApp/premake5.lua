@@ -11,6 +11,7 @@ project "WalnutApp"
    {
       "../vendor/imgui",
       "../vendor/glfw/include",
+      "../vendor/Eigen",
 
       "../Walnut/src",
 

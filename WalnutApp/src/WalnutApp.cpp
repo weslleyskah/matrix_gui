@@ -8,26 +8,10 @@
 #include <numeric>
 #include <cmath>
 #include <stdexcept>
+
+
+#include <Eigen>
 #include "algoritmos.h"
-
-struct Fraction {
-	int num = 0;
-	int den = 1;
-
-	void Simplify() {
-		if (den == 0) return;
-		if (den < 0) { num = -num; den = -den; }
-		int common = std::gcd(std::abs(num), std::abs(den));
-		num /= common;
-		den /= common;
-	}
-
-	std::string ToString() const {
-		if (den == 1) return std::to_string(num);
-		if (num == 0) return "0";
-		return std::to_string(num) + "/" + std::to_string(den);
-	}
-};
 
 class ExampleLayer : public Walnut::Layer
 {
@@ -115,7 +99,8 @@ public:
 			DrawMatrixResult("matEsc", matEsc);
 
 			ImGui::Separator();
-			static Fraction matInv[3][3];
+			static int matInvNum[3][3];
+			static int matInvDen[3][3];
 			static bool hasInverse = false;
 			if (ImGui::Button("Inversa", ImVec2(200, 30)))
 			{
@@ -131,16 +116,15 @@ public:
 					cof[0][2] = (matA[1][0] * matA[2][1] - matA[1][1] * matA[2][0]);
 					cof[1][0] = -(matA[0][1] * matA[2][2] - matA[0][2] * matA[2][1]);
 					cof[1][1] = (matA[0][0] * matA[2][2] - matA[0][2] * matA[2][0]);
-					cof[1][2] = -(matA[0][0] * matA[2][1] - matA[0][1] * matA[1][0]);
+					cof[1][2] = -(matA[0][0] * matA[2][1] - matA[0][1] * matA[2][0]);
 					cof[2][0] = (matA[0][1] * matA[1][2] - matA[0][2] * matA[1][1]);
 					cof[2][1] = -(matA[0][0] * matA[1][2] - matA[0][2] * matA[1][0]);
 					cof[2][2] = (matA[0][0] * matA[1][1] - matA[0][1] * matA[1][0]);
 
 					for (int i = 0; i < 3; i++) {
 						for (int j = 0; j < 3; j++) {
-							matInv[i][j].num = (int)std::round(cof[j][i] * 100.0);
-							matInv[i][j].den = (int)std::round(detVal * 100.0);
-							matInv[i][j].Simplify();
+							matInvNum[i][j] = (int)std::round(cof[j][i] * 100.0);
+							matInvDen[i][j] = (int)std::round(detVal * 100.0);
 						}
 					}
 					hasInverse = true;
@@ -148,7 +132,7 @@ public:
 				else hasInverse = false;
 			}
 			ImGui::Text("Inversa da Matriz A (Frações):");
-			if (hasInverse) DrawMatrixResultFrac("matInv", matInv);
+			if (hasInverse) DrawMatrixResultFrac("matInv", matInvNum, matInvDen);
 			else ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Matriz não inversível (Det = 0)");
 		}
 
@@ -277,7 +261,60 @@ public:
 			{
 				ImGui::Text("Determinante (Gauss): %.2f", detMN);
 			}
+
+
+			// Inversa MxN (Eigen)
+			ImGui::Columns(1);
+			ImGui::Separator();
+
+			static Eigen::MatrixXd matMNInv;
+			static bool hasInvMN = false;
+			static bool invMNComputed = false;
+
+			if (ImGui::Button("Inversa (Eigen)##mn", ImVec2(ImGui::CalcTextSize("Inversa (Eigen)").x + 16, 30)))
+			{
+				if (rows == cols)
+				{
+					Eigen::MatrixXd eigenMat(rows, cols);
+					for (int i = 0; i < rows; ++i)
+						for (int j = 0; j < cols; ++j)
+							eigenMat(i, j) = matMN[i][j];
+
+					if (std::abs(eigenMat.determinant()) > 1e-9)
+					{
+						matMNInv = eigenMat.inverse();
+						hasInvMN = true;
+						invMNComputed = true;
+					}
+					else
+					{
+						hasInvMN = false;
+						invMNComputed = true;
+					}
+				}
+				else
+				{
+					hasInvMN = false;
+					invMNComputed = false;
+				}
+			}
+
+			if (rows != cols && invMNComputed) {
+				ImGui::TextDisabled("Inversa: Apenas para matrizes quadradas.");
+			}
+			else if (invMNComputed)
+			{
+				if (hasInvMN)
+				{
+					ImGui::Text("Inversa (Eigen):");
+					DrawMatrixResult("matMNInv", matMNInv);
+				}
+				else
+					ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Matriz não inversível (Det = 0)");
+			}
 		}
+
+
 
 		PopButtonStyle();
 		ImGui::End();
@@ -389,7 +426,7 @@ private:
 		ImGui::Dummy(ImVec2(190, 3 * (cellHeight + 4)));
 	}
 
-	void DrawMatrixResultFrac(const char* id, Fraction mat[3][3]) {
+	void DrawMatrixResultFrac(const char* id, int matNum[3][3], int matDen[3][3]) {
 		const float cellWidth = 60.0f;
 		const float cellHeight = ImGui::GetFrameHeight();
 		ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -398,7 +435,7 @@ private:
 			for (int j = 0; j < 3; j++) {
 				ImVec2 pos = ImVec2(origin.x + j * 64, origin.y + i * (cellHeight + 4));
 				dl->AddRectFilled(pos, ImVec2(pos.x + cellWidth, pos.y + cellHeight), IM_COL32(100, 100, 100, 60), 4.0f);
-				std::string txt = mat[i][j].ToString();
+				std::string txt = tofraction(matNum[i][j], matDen[i][j]);
 				dl->AddText(ImVec2(pos.x + 5, pos.y + 2), IM_COL32(255, 255, 255, 255), txt.c_str());
 			}
 		}
@@ -420,6 +457,23 @@ private:
 			}
 		}
 		ImGui::Dummy(ImVec2(mat[0].size() * 64, mat.size() * (cellHeight + 4)));
+	}
+
+	void DrawMatrixResult(const char* id, const Eigen::MatrixXd& mat) {
+		if (mat.size() == 0) return;
+		const float cellWidth = 60.0f;
+		const float cellHeight = ImGui::GetFrameHeight();
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImVec2 origin = ImGui::GetCursorScreenPos();
+		for (int i = 0; i < mat.rows(); i++) {
+			for (int j = 0; j < mat.cols(); j++) {
+				ImVec2 pos = ImVec2(origin.x + j * 64, origin.y + i * (cellHeight + 4));
+				dl->AddRectFilled(pos, ImVec2(pos.x + cellWidth, pos.y + cellHeight), IM_COL32(100, 100, 100, 40), 4.0f);
+				std::string txt = std::to_string(mat(i, j)).substr(0, 4);
+				dl->AddText(ImVec2(pos.x + 5, pos.y + 2), IM_COL32(255, 255, 255, 255), txt.c_str());
+			}
+		}
+		ImGui::Dummy(ImVec2(mat.cols() * 64, mat.rows() * (cellHeight + 4)));
 	}
 };
 

@@ -3,6 +3,8 @@
 #include <vector>
 #include <cmath>
 #include <stdexcept>
+#include <numeric>
+#include <string>
 
 /* Eliminação de Gauss
 Para matrizes quadradas, o determinante é o produto da diagonal principal 
@@ -122,4 +124,17 @@ std::vector<std::vector<double>> escalonar(std::vector<std::vector<double>> mat)
 
 	}
 	return mat;
+}
+
+// Fraction
+
+std::string tofraction(int num, int den) {
+	if (den == 0) return "NaN";
+	if (num == 0) return "0";
+	if (den < 0) { num = -num; den = -den; }
+	int common = std::gcd(std::abs(num), std::abs(den));
+	num /= common;
+	den /= common;
+	if (den == 1) return std::to_string(num);
+	return std::to_string(num) + "/" + std::to_string(den);
 }
