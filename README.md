@@ -6,13 +6,13 @@ A simple C++ application to perform matrix operations built with the Walnut fram
 
 ### Download
 
-- [matrix_gui.exe](https://github.com/weslleyskah/matrix_gui/releases)
+[matrix_gui.exe](https://github.com/weslleyskah/matrix_gui/releases)
 
 ### Build
 
-- Run `scripts/Setup.bat` to generate the `.sln` file.
+> Run `scripts/Setup.bat` to generate the `.sln` file.
 
-- Open the `.sln` file and run the code on Visual Studio.
+>Open the `.sln` file and run the code on Visual Studio.
 
 ### Dependencies
 
