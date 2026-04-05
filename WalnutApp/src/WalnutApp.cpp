@@ -316,6 +316,121 @@ public:
 
 
 
+		// Sistemas Lineares
+		if (ImGui::CollapsingHeader("System of Equations", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			static int rowsS = 3, colsS = 3;
+			static Eigen::MatrixXd matA(3, 3);
+			static Eigen::VectorXd vecB(3);
+			static Eigen::VectorXd vecX;
+			static bool solved = false;
+			static int rankA = 0;
+			static int rankAug = 0;
+			static int systemStatus = 0; // 0: None, 1: Única, 2: Infinitas, 3: Nenhuma
+
+			static bool initialized = false;
+			if (!initialized) {
+				matA.setZero();
+				vecB.setZero();
+				initialized = true;
+			}
+
+			ImGui::Text("Dimensões do Sistema:");
+			int prevRows = rowsS, prevCols = colsS;
+			ImGui::SetNextItemWidth(120); ImGui::InputInt("Equações (m)##sys", &rowsS);
+			ImGui::SameLine();
+			ImGui::SetNextItemWidth(120); ImGui::InputInt("Variáveis (n)##sys", &colsS);
+
+			if (rowsS < 1) rowsS = 1; if (colsS < 1) colsS = 1;
+			if (rowsS != prevRows || colsS != prevCols) {
+				matA.conservativeResize(rowsS, colsS);
+				vecB.conservativeResize(rowsS);
+				if (rowsS > prevRows) {
+					matA.bottomRows(rowsS - prevRows).setZero();
+					vecB.tail(rowsS - prevRows).setZero();
+				}
+				if (colsS > prevCols) {
+					matA.rightCols(colsS - prevCols).setZero();
+				}
+				solved = false;
+				systemStatus = 0;
+			}
+
+			ImGui::Separator();
+			ImGui::Text("Sistema de Equações (Ax = b):");
+			DrawSystemInput("SysInput", matA, vecB);
+
+			ImGui::Separator();
+			if (ImGui::Button("Resolver Sistema", ImVec2(200, 30))) {
+
+				// Os ranks são calculados depois de escalonar a matriz A e a matriz ampliada
+				// por causa da função FullPivLU que é baseada em pivoteamento completo e pode 
+				// alterar a ordem das linhas, o que afeta o cálculo do rank.
+
+				// Matriz de coeficientes A
+				Eigen::FullPivLU<Eigen::MatrixXd> lu(matA);
+				rankA = (int)lu.rank();
+				
+				// Matriz ampliada [A|b]
+				Eigen::MatrixXd matAug(rowsS, colsS + 1);
+				matAug << matA, vecB;
+
+				// Resultado da decomposição LU para a matriz ampliada
+				Eigen::FullPivLU<Eigen::MatrixXd> luAug(matAug);
+				rankAug = (int)luAug.rank();
+
+				if (rankA == rankAug) {
+
+					// rankA = rankAug = n (vars)  -> Única solução
+					if (rankA == colsS) {
+						systemStatus = 1; 
+						vecX = lu.solve(vecB);
+					}
+					else {  
+						// rankA = rankAug < n (vars)  -> Infinitas soluções
+						systemStatus = 2; 
+						vecX = lu.solve(vecB); // Uma das soluções possíveis
+					}
+				}
+				else {
+					// rankA < rankAug  -> Sem solução
+					systemStatus = 3;
+				}
+				solved = true;
+			}
+
+			if (solved) {
+				ImGui::Text("Posto da Matriz de Coeficientes (rank A): %d", rankA);
+				ImGui::Text("Posto da Matriz Ampliada (rank [A|b]): %d", rankAug);
+				ImGui::Text("Número de Variáveis (n): %d", colsS);
+
+				if (systemStatus == 1) {
+					ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "O sistema possui uma ÚNICA solução (SPD).");
+					ImGui::Separator();
+					ImGui::Text("Solução encontrada:");
+					for (int i = 0; i < vecX.size(); i++) {
+						ImGui::Text("x%d = %.2f", i + 1, vecX(i));
+					}
+				}
+				else if (systemStatus == 2) {
+					ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.4f, 1.0f), "O sistema possui INFINITAS soluções (SPI).");
+					ImGui::Text("Grau de liberdade: %d", colsS - rankA);
+					ImGui::Separator();
+					ImGui::Text("Uma solução possível:");
+					for (int i = 0; i < vecX.size(); i++) {
+						ImGui::Text("x%d = %.2f", i + 1, vecX(i));
+					}
+				}
+				else if (systemStatus == 3) {
+					ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "O sistema NÃO possui solução (SI).");
+				}
+			}
+			else {
+				ImGui::TextDisabled("Clique em 'Resolver Sistema' para analisar.");
+			}
+		}
+
+
 		PopButtonStyle();
 		ImGui::End();
 		PopWindowStyle();
@@ -409,6 +524,83 @@ private:
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
 	}
+
+	void DrawSystemInput(const char* id, Eigen::MatrixXd& A, Eigen::VectorXd& b) {
+		int rows = (int)A.rows();
+		int cols = (int)A.cols();
+		static int nextFocusRow = -1, nextFocusCol = -1;
+		static const char* activeId = nullptr;
+		const float cellWidth = 60.0f;
+
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(120, 120, 120, 40));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(120, 120, 120, 65));
+		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(120, 120, 120, 90));
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < cols; j++) {
+				ImGui::PushID(i * (cols + 1) + j + (intptr_t)id);
+				if (activeId == id && nextFocusRow == i && nextFocusCol == j) {
+					ImGui::SetKeyboardFocusHere();
+					nextFocusRow = -1; nextFocusCol = -1;
+				}
+				
+				// Usamos buffer de texto para aceitar "1/2"
+				char buf[32];
+				if (std::abs(A(i, j) - std::round(A(i, j))) < 1e-9)
+					sprintf(buf, "%d", (int)std::round(A(i, j)));
+				else
+					sprintf(buf, "%.2f", A(i, j));
+
+				ImGui::SetNextItemWidth(cellWidth);
+				if (ImGui::InputText("##cellA", buf, sizeof(buf), ImGuiInputTextFlags_CharsDecimal | ImGuiInputTextFlags_CharsNoBlank)) {
+					A(i, j) = parseFraction(buf);
+				}
+
+				if (ImGui::IsItemFocused()) {
+					activeId = id;
+					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i; nextFocusCol = j - 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) { nextFocusRow = i; nextFocusCol = j + 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && i > 0) { nextFocusRow = i - 1; nextFocusCol = j; }
+					if (ImGui::IsKeyPressed(ImGuiKey_DownArrow) && i < rows - 1) { nextFocusRow = i + 1; nextFocusCol = j; }
+				}
+				ImGui::PopID();
+				ImGui::SameLine();
+				ImGui::Text("x%d %s", j + 1, (j < cols - 1) ? "+ " : "= ");
+				ImGui::SameLine();
+			}
+
+			// Vetor b
+			ImGui::PushID(i * (cols + 1) + cols + (intptr_t)id);
+			if (activeId == id && nextFocusRow == i && nextFocusCol == cols) {
+				ImGui::SetKeyboardFocusHere();
+				nextFocusRow = -1; nextFocusCol = -1;
+			}
+			
+			char bufB[32];
+			if (std::abs(b(i) - std::round(b(i))) < 1e-9)
+				sprintf(bufB, "%d", (int)std::round(b(i)));
+			else
+				sprintf(bufB, "%.2f", b(i));
+
+			ImGui::SetNextItemWidth(cellWidth);
+			if (ImGui::InputText("##cellB", bufB, sizeof(bufB), ImGuiInputTextFlags_CharsDecimal | ImGuiInputTextFlags_CharsNoBlank)) {
+				b(i) = parseFraction(bufB);
+			}
+
+			if (ImGui::IsItemFocused()) {
+				activeId = id;
+				if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) { nextFocusRow = i; nextFocusCol = cols - 1; }
+				if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && i > 0) { nextFocusRow = i - 1; nextFocusCol = cols; }
+				if (ImGui::IsKeyPressed(ImGuiKey_DownArrow) && i < rows - 1) { nextFocusRow = i + 1; nextFocusCol = cols; }
+			}
+			ImGui::PopID();
+		}
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
+	}
+
 
 	void DrawMatrixResult(const char* id, double mat[3][3]) {
 		const float cellWidth = 60.0f;

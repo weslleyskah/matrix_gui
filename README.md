@@ -26,8 +26,8 @@ A simple C++ application to perform matrix operations built with the Walnut fram
 
 | | |
 | :--- | :--- |
-| `WalnutApp/src/WalnutApp.cpp` | Application and UI |
+| `WalnutApp/src/WalnutApp.cpp` | Application |
 | `Walnut/` | Framework |
-| `vendor/` | Dependencies (Imgui, GLFW, GLM) |
-| `scripts/Setup.bat` | Script to generate the solution file |
+| `vendor/` | Dependencies |
+| `scripts/Setup.bat` | Script |
 | `premake5.lua` | Build |

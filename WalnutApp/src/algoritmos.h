@@ -138,3 +138,13 @@ std::string tofraction(int num, int den) {
 	if (den == 1) return std::to_string(num);
 	return std::to_string(num) + "/" + std::to_string(den);
 }
+
+double parseFraction(const std::string& s) {
+	size_t slash = s.find('/');
+	if (slash != std::string::npos) {
+		double num = std::atof(s.substr(0, slash).c_str());
+		double den = std::atof(s.substr(slash + 1).c_str());
+		return (den != 0) ? num / den : 0.0;
+	}
+	return std::atof(s.c_str());
+}
