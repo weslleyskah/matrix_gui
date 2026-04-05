@@ -407,7 +407,10 @@ public:
 					ImGui::Separator();
 					ImGui::Text("Solução encontrada:");
 					for (int i = 0; i < vecX.size(); i++) {
-						ImGui::Text("x%d = %.2f", i + 1, vecX(i));
+						
+						std::string fractionStr = valueToFraction(vecX(i));
+
+						ImGui::Text("x%d = %s", i + 1, fractionStr.c_str());
 					}
 				}
 				else if (systemStatus == 2) {
@@ -416,7 +419,10 @@ public:
 					ImGui::Separator();
 					ImGui::Text("Uma solução possível:");
 					for (int i = 0; i < vecX.size(); i++) {
-						ImGui::Text("x%d = %.2f", i + 1, vecX(i));
+
+						std::string fractionStr = valueToFraction(vecX(i));
+
+						ImGui::Text("x%d = %s", i + 1, fractionStr.c_str());
 					}
 				}
 				else if (systemStatus == 3) {
