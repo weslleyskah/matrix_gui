@@ -126,19 +126,9 @@ std::vector<std::vector<double>> escalonar(std::vector<std::vector<double>> mat)
 	return mat;
 }
 
-// Fraction
+// Fractions 
 
-std::string tofraction(int num, int den) {
-	if (den == 0) return "NaN";
-	if (num == 0) return "0";
-	if (den < 0) { num = -num; den = -den; }
-	int common = std::gcd(std::abs(num), std::abs(den));
-	num /= common;
-	den /= common;
-	if (den == 1) return std::to_string(num);
-	return std::to_string(num) + "/" + std::to_string(den);
-}
-
+// Parses a string that may represent a fraction and returns its double value.
 double parseFraction(const std::string& s) {
 	size_t slash = s.find('/');
 	if (slash != std::string::npos) {
@@ -147,4 +137,66 @@ double parseFraction(const std::string& s) {
 		return (den != 0) ? num / den : 0.0;
 	}
 	return std::atof(s.c_str());
+}
+
+// Continued Fraction: converts a decimal to a fraction string
+// https://pi.math.cornell.edu/~gautam/ContinuedFractions.pdf
+/*
+Example:
+Let x = 2.875
+Its integral part is 2 and so the continued fraction starts as [2, ...].
+2.875 − 2 = 0.875
+Calculate 1/0.875 using a calculator to get 1.14285714285714. Its integral part is 1.
+So we now have [2, 1, ...].
+1.14285714285714−1 = 0.14285714285714. Calculate 1/0.14285714285714 to get 7.00000000000014
+whose integral part is 7.
+The continued fraction is now [2, 1, 7, ...].
+7.00000000000014 − 7 = 0.00000000000014 which is “almost” 0.
+So, we terminate the algorithm here to get [2, 1, 7].
+2.875 = 2 + 1/(1 + 1/7) = 2 + 1/(8/7) = 2 + 7/8 = (16/8) + (7/8) = 23/8
+*/
+std::string valueToFraction(double value) {
+
+	const double EPSILON = 1e-7;
+	const int MAX_ITERATIONS = 8;
+
+	if (std::abs(value) < 1e-10) return "0";
+	if (std::isnan(value))         return "NaN";
+	if (std::isinf(value))         return "Inf";
+
+	bool negative = (value < 0);
+	value = std::abs(value);
+
+	double x = value;
+	long long a = (long long)std::floor(x);
+
+	long long num1 = 1, num2 = a;
+	long long den1 = 0, den2 = 1;
+
+	for (int i = 0; i < MAX_ITERATIONS; i++) {
+		if (std::abs(x - a) < EPSILON) break;
+		
+		x = 1.0 / (x - a);
+		a = (long long)std::floor(x + EPSILON); 
+
+		long long num = a * num2 + num1;
+		long long den = a * den2 + den1;
+
+		if (num > 1000000 || den > 1000000) break;
+
+		num1 = num2; num2 = num;
+		den1 = den2; den2 = den;
+
+		if (std::abs(value - (double)num2 / den2) < EPSILON) break;
+	}
+
+	long long final_num = num2;
+	long long final_den = den2;
+
+	std::string sign = negative ? "-" : "";
+
+	if (final_den == 1)
+		return sign + std::to_string(final_num);
+
+	return sign + std::to_string(final_num) + "/" + std::to_string(final_den);
 }

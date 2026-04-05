@@ -9,7 +9,7 @@ GEMINI.md
 *.vcxproj.user
 *.vcxproj.filters
 *.sln
-imgui.ini
+*.ini
 
 # Exclude
 !vendor/bin

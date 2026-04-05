@@ -99,8 +99,7 @@ public:
 			DrawMatrixResult("matEsc", matEsc);
 
 			ImGui::Separator();
-			static int matInvNum[3][3];
-			static int matInvDen[3][3];
+			static double matInv[3][3] = { 0.0 };
 			static bool hasInverse = false;
 			if (ImGui::Button("Inversa", ImVec2(200, 30)))
 			{
@@ -123,8 +122,7 @@ public:
 
 					for (int i = 0; i < 3; i++) {
 						for (int j = 0; j < 3; j++) {
-							matInvNum[i][j] = (int)std::round(cof[j][i] * 100.0);
-							matInvDen[i][j] = (int)std::round(detVal * 100.0);
+							matInv[i][j] = cof[j][i] / detVal;
 						}
 					}
 					hasInverse = true;
@@ -132,7 +130,7 @@ public:
 				else hasInverse = false;
 			}
 			ImGui::Text("Inversa da Matriz A (Frações):");
-			if (hasInverse) DrawMatrixResultFrac("matInv", matInvNum, matInvDen);
+			if (hasInverse) DrawMatrixResult("matInv", matInv);
 			else ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Matriz não inversível (Det = 0)");
 		}
 
@@ -425,9 +423,6 @@ public:
 					ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "O sistema NÃO possui solução (SI).");
 				}
 			}
-			else {
-				ImGui::TextDisabled("Clique em 'Resolver Sistema' para analisar.");
-			}
 		}
 
 
@@ -603,69 +598,54 @@ private:
 
 
 	void DrawMatrixResult(const char* id, double mat[3][3]) {
-		const float cellWidth = 60.0f;
+		const float cellWidth = 100.0f;
 		const float cellHeight = ImGui::GetFrameHeight();
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		ImVec2 origin = ImGui::GetCursorScreenPos();
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				ImVec2 pos = ImVec2(origin.x + j * 64, origin.y + i * (cellHeight + 4));
+				ImVec2 pos = ImVec2(origin.x + j * 105, origin.y + i * (cellHeight + 4));
 				dl->AddRectFilled(pos, ImVec2(pos.x + cellWidth, pos.y + cellHeight), IM_COL32(100, 100, 100, 40), 4.0f);
-				std::string txt = std::to_string(mat[i][j]).substr(0, 4);
+				std::string txt = valueToFraction(mat[i][j]);
 				dl->AddText(ImVec2(pos.x + 5, pos.y + 2), IM_COL32(255, 255, 255, 255), txt.c_str());
 			}
 		}
-		ImGui::Dummy(ImVec2(190, 3 * (cellHeight + 4)));
-	}
-
-	void DrawMatrixResultFrac(const char* id, int matNum[3][3], int matDen[3][3]) {
-		const float cellWidth = 60.0f;
-		const float cellHeight = ImGui::GetFrameHeight();
-		ImDrawList* dl = ImGui::GetWindowDrawList();
-		ImVec2 origin = ImGui::GetCursorScreenPos();
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				ImVec2 pos = ImVec2(origin.x + j * 64, origin.y + i * (cellHeight + 4));
-				dl->AddRectFilled(pos, ImVec2(pos.x + cellWidth, pos.y + cellHeight), IM_COL32(100, 100, 100, 60), 4.0f);
-				std::string txt = tofraction(matNum[i][j], matDen[i][j]);
-				dl->AddText(ImVec2(pos.x + 5, pos.y + 2), IM_COL32(255, 255, 255, 255), txt.c_str());
-			}
-		}
-		ImGui::Dummy(ImVec2(190, 3 * (cellHeight + 4)));
+		ImGui::Dummy(ImVec2(3 * 105, 3 * (cellHeight + 4)));
 	}
 
 	void DrawMatrixResult(const char* id, const std::vector<std::vector<double>>& mat) {
 		if (mat.empty()) return;
-		const float cellWidth = 60.0f;
+		const float cellWidth = 100.0f;
 		const float cellHeight = ImGui::GetFrameHeight();
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		ImVec2 origin = ImGui::GetCursorScreenPos();
 		for (int i = 0; i < mat.size(); i++) {
 			for (int j = 0; j < mat[0].size(); j++) {
-				ImVec2 pos = ImVec2(origin.x + j * 64, origin.y + i * (cellHeight + 4));
+				ImVec2 pos = ImVec2(origin.x + j * 105, origin.y + i * (cellHeight + 4));
 				dl->AddRectFilled(pos, ImVec2(pos.x + cellWidth, pos.y + cellHeight), IM_COL32(100, 100, 100, 40), 4.0f);
-				std::string txt = std::to_string(mat[i][j]).substr(0, 4);
+				std::string txt = valueToFraction(mat[i][j]);
 				dl->AddText(ImVec2(pos.x + 5, pos.y + 2), IM_COL32(255, 255, 255, 255), txt.c_str());
 			}
 		}
-		ImGui::Dummy(ImVec2(mat[0].size() * 64, mat.size() * (cellHeight + 4)));
+		ImGui::Dummy(ImVec2(mat[0].size() * 105, mat.size() * (cellHeight + 4)));
 	}
 
 	void DrawMatrixResult(const char* id, const Eigen::MatrixXd& mat) {
 		if (mat.size() == 0) return;
-		const float cellWidth = 60.0f;
+		const float cellWidth = 100.0f;
 		const float cellHeight = ImGui::GetFrameHeight();
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		ImVec2 origin = ImGui::GetCursorScreenPos();
 		for (int i = 0; i < mat.rows(); i++) {
 			for (int j = 0; j < mat.cols(); j++) {
-				ImVec2 pos = ImVec2(origin.x + j * 64, origin.y + i * (cellHeight + 4));
+				ImVec2 pos = ImVec2(origin.x + j * 105, origin.y + i * (cellHeight + 4));
 				dl->AddRectFilled(pos, ImVec2(pos.x + cellWidth, pos.y + cellHeight), IM_COL32(100, 100, 100, 40), 4.0f);
-				std::string txt = std::to_string(mat(i, j)).substr(0, 4);
+				std::string txt = valueToFraction(mat(i, j));
+				// std::string txt = std::to_string(mat(i, j)).substr(0, 4);
 				dl->AddText(ImVec2(pos.x + 5, pos.y + 2), IM_COL32(255, 255, 255, 255), txt.c_str());
 			}
 		}
-		ImGui::Dummy(ImVec2(mat.cols() * 64, mat.rows() * (cellHeight + 4)));
+		ImGui::Dummy(ImVec2(mat.cols() * 105, mat.rows() * (cellHeight + 4)));
 	}
 };
 
