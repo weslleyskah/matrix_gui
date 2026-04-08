@@ -8,6 +8,7 @@
 #include <numeric>
 #include <cmath>
 #include <stdexcept>
+#include <unordered_map>
 
 
 #include <Eigen>
@@ -157,8 +158,10 @@ public:
 			ImGui::SetNextItemWidth(80); ImGui::InputInt("Columns##mn", &cols);
 
 			if (rows < 1) rows = 1; if (cols < 1) cols = 1;
+
 			if (rows != prevRows || cols != prevCols) {
 				matMN.assign(rows, std::vector<double>(cols, 0.0));
+				bufferMap["MN"].clear();
 				matMN3.clear();
 				multiplicationValid = true;
 				hasDetMN = true;
@@ -438,6 +441,10 @@ public:
 	}
 
 private:
+
+	// Buffer for the MxN matrix input cells
+	std::unordered_map<std::string, std::vector<std::vector<std::string>>> bufferMap;
+
 	void PushButtonStyle() {
 		ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(80, 80, 80, 80));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(120, 120, 120, 120));
@@ -456,10 +463,17 @@ private:
 
 	void PopWindowStyle() { ImGui::PopStyleVar(2); ImGui::PopStyleColor(); }
 
+	// Matrix 3x3
 	void DrawMatrixInput(const char* id, double mat[3][3]) {
 		static int nextFocusRow = -1, nextFocusCol = -1;
 		static const char* activeId = nullptr;
 		const float cellWidth = 60.0f;
+
+		// static std::unordered_map<std::string, std::vector<std::vector<std::string>>> bufferMap;
+		auto& cellBuffers = bufferMap[std::string(id)];
+		if ((int)cellBuffers.size() != 3) cellBuffers.assign(3, std::vector<std::string>(3, "0"));
+		for (int i = 0; i < 3; i++)
+			if ((int)cellBuffers[i].size() != 3) cellBuffers[i].assign(3, "0");
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(120, 120, 120, 40));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(120, 120, 120, 65));
@@ -474,12 +488,21 @@ private:
 					ImGui::SetKeyboardFocusHere();
 					nextFocusRow = -1; nextFocusCol = -1;
 				}
+
+				char buf[32];
+				strncpy(buf, cellBuffers[i][j].c_str(), sizeof(buf));
+				buf[sizeof(buf) - 1] = '\0';
+
 				ImGui::SetNextItemWidth(cellWidth);
-				ImGui::InputDouble("##cell", &mat[i][j], 0.0, 0.0, "%.2f");
+				if (ImGui::InputText("##cell", buf, sizeof(buf), ImGuiInputTextFlags_CharsNoBlank)) {
+					cellBuffers[i][j] = buf;
+					mat[i][j] = parseFraction(buf);
+				}
+
 				if (ImGui::IsItemFocused()) {
 					activeId = id;
-					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i; nextFocusCol = j - 1; }
-					if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && j < 2) { nextFocusRow = i; nextFocusCol = j + 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i;   nextFocusCol = j - 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && j < 2) { nextFocusRow = i;   nextFocusCol = j + 1; }
 					if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && i > 0) { nextFocusRow = i - 1; nextFocusCol = j; }
 					if (ImGui::IsKeyPressed(ImGuiKey_DownArrow) && i < 2) { nextFocusRow = i + 1; nextFocusCol = j; }
 				}
@@ -491,10 +514,19 @@ private:
 		ImGui::PopStyleColor(3);
 	}
 
+	// Matrix MxN
 	void DrawMatrixInput(const char* id, std::vector<std::vector<double>>& mat, int rows, int cols) {
 		static int nextFocusRow = -1, nextFocusCol = -1;
 		static const char* activeId = nullptr;
 		const float cellWidth = 60.0f;
+
+		static std::unordered_map<std::string, std::vector<std::vector<std::string>>> bufferMap;
+		auto& cellBuffers = bufferMap[std::string(id)];
+
+		// Resize buffers to match current matrix dimensions
+		if ((int)cellBuffers.size() != rows) cellBuffers.resize(rows);
+		for (int i = 0; i < rows; i++)
+			if ((int)cellBuffers[i].size() != cols) cellBuffers[i].resize(cols, "0");
 
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(120, 120, 120, 40));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(120, 120, 120, 65));
@@ -509,12 +541,21 @@ private:
 					ImGui::SetKeyboardFocusHere();
 					nextFocusRow = -1; nextFocusCol = -1;
 				}
+
+				char buf[32];
+				strncpy(buf, cellBuffers[i][j].c_str(), sizeof(buf));
+				buf[sizeof(buf) - 1] = '\0';
+
 				ImGui::SetNextItemWidth(cellWidth);
-				ImGui::InputDouble("##cell", &mat[i][j], 0.0, 0.0, "%.2f");
+				if (ImGui::InputText("##cell", buf, sizeof(buf), ImGuiInputTextFlags_CharsNoBlank)) {
+					cellBuffers[i][j] = buf;
+					mat[i][j] = parseFraction(buf);
+				}
+
 				if (ImGui::IsItemFocused()) {
 					activeId = id;
-					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i; nextFocusCol = j - 1; }
-					if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && j < cols - 1) { nextFocusRow = i; nextFocusCol = j + 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i;   nextFocusCol = j - 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && j < cols - 1) { nextFocusRow = i;   nextFocusCol = j + 1; }
 					if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && i > 0) { nextFocusRow = i - 1; nextFocusCol = j; }
 					if (ImGui::IsKeyPressed(ImGuiKey_DownArrow) && i < rows - 1) { nextFocusRow = i + 1; nextFocusCol = j; }
 				}
@@ -533,6 +574,20 @@ private:
 		static const char* activeId = nullptr;
 		const float cellWidth = 60.0f;
 
+		// Persistent string buffers
+		// Keyed by id so multiple systems don't share state
+		static std::unordered_map<std::string, std::vector<std::vector<std::string>>> bufferMap;
+		std::string key(id);
+		auto& cellBuffers = bufferMap[key];
+
+		// Resize if dimensions changed
+		if ((int)cellBuffers.size() != rows) cellBuffers.resize(rows);
+		for (int i = 0; i < rows; i++) {
+			if ((int)cellBuffers[i].size() != cols + 1) {
+				cellBuffers[i].resize(cols + 1, "0");
+			}
+		}
+
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(120, 120, 120, 40));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(120, 120, 120, 65));
 		ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(120, 120, 120, 90));
@@ -546,23 +601,22 @@ private:
 					ImGui::SetKeyboardFocusHere();
 					nextFocusRow = -1; nextFocusCol = -1;
 				}
-				
-				// Usamos buffer de texto para aceitar "1/2"
+
 				char buf[32];
-				if (std::abs(A(i, j) - std::round(A(i, j))) < 1e-9)
-					sprintf(buf, "%d", (int)std::round(A(i, j)));
-				else
-					sprintf(buf, "%.2f", A(i, j));
+				strncpy(buf, cellBuffers[i][j].c_str(), sizeof(buf));
+				buf[sizeof(buf) - 1] = '\0';
 
 				ImGui::SetNextItemWidth(cellWidth);
-				if (ImGui::InputText("##cellA", buf, sizeof(buf), ImGuiInputTextFlags_CharsDecimal | ImGuiInputTextFlags_CharsNoBlank)) {
-					A(i, j) = parseFraction(buf);
+				
+				if (ImGui::InputText("##cellA", buf, sizeof(buf), ImGuiInputTextFlags_CharsNoBlank)) {
+					cellBuffers[i][j] = buf;         // store raw text (fractions "1/2")
+					A(i, j) = parseFraction(buf);    // only the numeric value updates
 				}
 
 				if (ImGui::IsItemFocused()) {
 					activeId = id;
-					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i; nextFocusCol = j - 1; }
-					if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) { nextFocusRow = i; nextFocusCol = j + 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && j > 0) { nextFocusRow = i;   nextFocusCol = j - 1; }
+					if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) { nextFocusRow = i;   nextFocusCol = j + 1; }
 					if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && i > 0) { nextFocusRow = i - 1; nextFocusCol = j; }
 					if (ImGui::IsKeyPressed(ImGuiKey_DownArrow) && i < rows - 1) { nextFocusRow = i + 1; nextFocusCol = j; }
 				}
@@ -572,32 +626,32 @@ private:
 				ImGui::SameLine();
 			}
 
-			// Vetor b
+			// --- Vector b ---
 			ImGui::PushID(i * (cols + 1) + cols + (intptr_t)id);
 			if (activeId == id && nextFocusRow == i && nextFocusCol == cols) {
 				ImGui::SetKeyboardFocusHere();
 				nextFocusRow = -1; nextFocusCol = -1;
 			}
-			
+
 			char bufB[32];
-			if (std::abs(b(i) - std::round(b(i))) < 1e-9)
-				sprintf(bufB, "%d", (int)std::round(b(i)));
-			else
-				sprintf(bufB, "%.2f", b(i));
+			strncpy(bufB, cellBuffers[i][cols].c_str(), sizeof(bufB));
+			bufB[sizeof(bufB) - 1] = '\0';
 
 			ImGui::SetNextItemWidth(cellWidth);
-			if (ImGui::InputText("##cellB", bufB, sizeof(bufB), ImGuiInputTextFlags_CharsDecimal | ImGuiInputTextFlags_CharsNoBlank)) {
+			if (ImGui::InputText("##cellB", bufB, sizeof(bufB), ImGuiInputTextFlags_CharsNoBlank)) {
+				cellBuffers[i][cols] = bufB;
 				b(i) = parseFraction(bufB);
 			}
 
 			if (ImGui::IsItemFocused()) {
 				activeId = id;
-				if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) { nextFocusRow = i; nextFocusCol = cols - 1; }
+				if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) { nextFocusRow = i;   nextFocusCol = cols - 1; }
 				if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && i > 0) { nextFocusRow = i - 1; nextFocusCol = cols; }
 				if (ImGui::IsKeyPressed(ImGuiKey_DownArrow) && i < rows - 1) { nextFocusRow = i + 1; nextFocusCol = cols; }
 			}
 			ImGui::PopID();
 		}
+
 		ImGui::PopStyleVar(2);
 		ImGui::PopStyleColor(3);
 	}
