@@ -86,42 +86,42 @@ std::vector <std::vector<double>> multiplyMatrices(const std::vector<std::vector
 
 }
 
-// Escalonamento de Matriz (Triangularização)
+// Escalonamento de Matriz MxN (Triangularização)
 
 std::vector<std::vector<double>> escalonar(std::vector<std::vector<double>> mat) {
+	int linhas = mat.size();
+	int colunas = mat[0].size();
 
-	int n = mat.size();
-	int cols = mat[0].size();
-	// A última coluna é o vetor de termos independentes
+	int linhaPivo = 0; // Rastreia a próxima linha que receberá um pivô
 
-	for (int col = 0; col < cols-1; col++) {
+	for (int col = 0; col < colunas && linhaPivo < linhas; col++) {
 
-		// Pivotamento parcial: acha a linha com maior valor absoluto na coluna
-		int pivotRow = col;
-		for (int row = col + 1; row < n; row++)
-			if (std::abs(mat[row][col]) > std::abs(mat[pivotRow][col]))
-				pivotRow = row;
+		// Pivotamento parcial: encontra a linha com maior valor absoluto na coluna atual
+		int melhorLinha = linhaPivo;
+		for (int linha = linhaPivo + 1; linha < linhas; linha++)
+			if (std::abs(mat[linha][col]) > std::abs(mat[melhorLinha][col]))
+				melhorLinha = linha;
 
-		// Troca de linhas
-		if (pivotRow != col) {
-			std::swap(mat[col], mat[pivotRow]);
-		}
-
-		// Se o pivot encontrado for zero, a coluna já está escalonada com zero abaixo, então continua para a próxima coluna
-		if (mat[col][col] == 0 || std::abs(mat[col][col]) < 1e-10)
+		// Se o melhor pivô encontrado for zero, não há pivô nessa coluna, passa para a próxima
+		if (std::abs(mat[melhorLinha][col]) < 1e-10)
 			continue;
 
-		// Triangulação: Transformar em zero abaixo do pivot
-		for (int row = col + 1; row < n; row++) {
-			double factor = mat[row][col] / mat[col][col];
-			for (int k = col; k < cols; k++) {
-				mat[row][k] -= factor * mat[col][k]; // line2 = line2 - factor * line1
-				if (std::abs(mat[row][k]) < 1e-6) {
-					mat[row][k] = 0.0;
-				}
+		// Troca a linha do pivô para a posição correta
+		if (melhorLinha != linhaPivo)
+			std::swap(mat[linhaPivo], mat[melhorLinha]);
+
+		// Triangulação: zera todos os elementos abaixo do pivô
+		for (int linha = linhaPivo + 1; linha < linhas; linha++) {
+			double fator = mat[linha][col] / mat[linhaPivo][col];
+			for (int k = col; k < colunas; k++) {
+				mat[linha][k] -= fator * mat[linhaPivo][k];
+				// Elimina erros de ponto flutuante próximos de zero
+				if (std::abs(mat[linha][k]) < 1e-10)
+					mat[linha][k] = 0.0;
 			}
 		}
 
+		linhaPivo++; // Avança para a próxima linha somente quando um pivô foi encontrado
 	}
 	return mat;
 }

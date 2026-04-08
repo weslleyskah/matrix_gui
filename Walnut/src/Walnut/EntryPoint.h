@@ -1,4 +1,4 @@
-#pragma once
+#pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 #ifdef WL_PLATFORM_WINDOWS
 

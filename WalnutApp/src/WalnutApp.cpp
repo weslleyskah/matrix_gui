@@ -24,6 +24,8 @@ public:
 		ImGui::SetNextWindowPos(viewport->WorkPos);
 		ImGui::SetNextWindowSize(viewport->WorkSize);
 
+		ImGui::GetIO().IniFilename = nullptr;
+
 		PushWindowStyle();
 		PushButtonStyle();
 
@@ -69,11 +71,11 @@ public:
 					- matA[0][1] * (matA[1][0] * matA[2][2] - matA[1][2] * matA[2][0])
 					+ matA[0][2] * (matA[1][0] * matA[2][1] - matA[1][1] * matA[2][0]);
 			}
-			ImGui::Text("Determinante da Matriz A: %.2f", detA);
+			ImGui::Text("Determinante: %.2f", detA);
 
 			ImGui::Separator();
 			static double matEsc[3][3] = { 0.0 };
-			if (ImGui::Button("Escalonamento", ImVec2(200, 30)))
+			if (ImGui::Button("Escalonar", ImVec2(200, 30)))
 			{
 				for (int i = 0; i < 3; i++)
 					for (int j = 0; j < 3; j++)
@@ -96,7 +98,7 @@ public:
 					}
 				}
 			}
-			ImGui::Text("Escalonamento da Matriz A:");
+			ImGui::Text("Escalonamento:");
 			DrawMatrixResult("matEsc", matEsc);
 
 			ImGui::Separator();
@@ -130,7 +132,7 @@ public:
 				}
 				else hasInverse = false;
 			}
-			ImGui::Text("Inversa da Matriz A (Frações):");
+			ImGui::Text("Inversa:");
 			if (hasInverse) DrawMatrixResult("matInv", matInv);
 			else ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Matriz não inversível (Det = 0)");
 		}
@@ -196,7 +198,7 @@ public:
 			ImGui::Columns(1);
 			ImGui::Separator();
 
-			if (ImGui::Button("Multiplicar Matrizes##mn", ImVec2(200, 30)))
+			if (ImGui::Button("Multiplicar##mn", ImVec2(200, 30)))
 			{
 				try {
 					matMN3 = multiplyMatrices(matMN, matMN2);
@@ -218,7 +220,7 @@ public:
 			ImGui::Columns(1);
 			ImGui::Separator();
 
-			if (ImGui::Button("Escalonar##mn", ImVec2(ImGui::CalcTextSize("Escalonar").x + 16, 30)))
+			if (ImGui::Button("Escalonar##mn", ImVec2(200, 30)))
 			{
 				matMN4 = escalonar(matMN);
 			}
@@ -228,7 +230,7 @@ public:
 			ImGui::Columns(1);
 			ImGui::Separator();
 
-			if (ImGui::Button("Determinante (Eliminação de Gauss)##mn", ImVec2(ImGui::CalcTextSize("Determinante (Eliminação de Gauss)").x + 16, 30)))
+			if (ImGui::Button("Determinante##mn", ImVec2(200, 30)))
 			{
 				if (rows == cols)
 				{
@@ -272,7 +274,7 @@ public:
 			static bool hasInvMN = false;
 			static bool invMNComputed = false;
 
-			if (ImGui::Button("Inversa (Eigen)##mn", ImVec2(ImGui::CalcTextSize("Inversa (Eigen)").x + 16, 30)))
+			if (ImGui::Button("Inversa##mn", ImVec2(200, 30) ))
 			{
 				if (rows == cols)
 				{
@@ -307,7 +309,7 @@ public:
 			{
 				if (hasInvMN)
 				{
-					ImGui::Text("Inversa (Eigen):");
+					ImGui::Text("Inversa:");
 					DrawMatrixResult("matMNInv", matMNInv);
 				}
 				else
