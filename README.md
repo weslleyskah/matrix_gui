@@ -1,6 +1,6 @@
 # Matrix GUI
 
-A simple C++ application to perform matrix operations built with the Walnut framework.
+A simple C++ application to perform matrix operations.
 
 ![Screenshot](img/matrix_gui.png)
 
@@ -8,11 +8,11 @@ A simple C++ application to perform matrix operations built with the Walnut fram
 
 [matrix_gui.exe](https://github.com/weslleyskah/matrix_gui/releases)
 
-### Build
+### Run
 
 > Run `scripts/Setup.bat` to generate the `.sln` file.
 
->Open the `.sln` file and run the code on Visual Studio.
+> Open the `.sln` file and run the code on Visual Studio.
 
 ### Dependencies
 
@@ -26,8 +26,7 @@ A simple C++ application to perform matrix operations built with the Walnut fram
 
 | | |
 | :--- | :--- |
-| `WalnutApp/src/WalnutApp.cpp` | Application |
-| `Walnut/` | Framework |
-| `vendor/` | Dependencies |
-| `scripts/Setup.bat` | Script |
-| `premake5.lua` | Build |
+| `WalnutApp/src/WalnutApp.cpp` | application |
+| `Walnut/` | framework |
+| `vendor/` | dependencies |
+| `scripts/Setup.bat` | build |
