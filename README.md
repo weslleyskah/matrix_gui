@@ -26,7 +26,6 @@ A simple C++ application to perform matrix operations.
 
 | | |
 | :--- | :--- |
-| `WalnutApp/src/WalnutApp.cpp` | application |
-| `Walnut/` | framework |
-| `vendor/` | dependencies |
-| `scripts/Setup.bat` | build |
+| `src/main.cpp` | application |
+| `dependencies/` | dependencies |
+| `scripts/build.bat` | build |
