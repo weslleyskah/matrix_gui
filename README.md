@@ -10,16 +10,16 @@ A simple C++ application to perform matrix operations.
 
 ### Run
 
-> Run `scripts/Setup.bat` to generate the `.sln` file.
+> Run `scripts/build.bat` to generate the `.sln` file.
+
+> Run `matrix_gui\build\Debug\matrixGui.exe` or
 
 > Open the `.sln` file and run the code on Visual Studio.
 
 ### Dependencies
 
-- Visual Studio
-- [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows)
-- [Walnut](https://github.com/StudioCherno/Walnut)
-- [ImGui](https://github.com/ocornut/imgui) 
+- [Vulkan](https://vulkan.lunarg.com/sdk/home#windows)
+- [ImGui](https://github.com/ocornut/imgui) + GLFW 
 - [Eigen](https://libeigen.gitlab.io/)
 
 ### Structure

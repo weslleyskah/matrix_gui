@@ -1,15 +1,44 @@
-# Directories
-.vs/
+# Build Folders
+build/
 bin/
-bin-int/
+obj/
 
-# Files
-GEMINI.md
-*.vcxproj
-*.vcxproj.user
-*.vcxproj.filters
+# Visual Studio
+.vs/
 *.sln
-*.ini
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.dir/
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.log
+Debug/
+Release/
+x64/
 
-# Exclude
-!vendor/bin
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Makefile
+cmake_install.cmake
+install/
+CPackConfig.cmake
+CPackSourceConfig.cmake
+
+# Dependency Cleanup (Keep only the core)
+# ignore the original docs/examples if they still exist elsewhere)
+dependencies/imgui/docs/
+dependencies/imgui/examples/
+dependencies/imgui/misc/
+dependencies/GLFW/docs/
+dependencies/GLFW/examples/
+dependencies/GLFW/tests/
+
+# OS Specific
+.DS_Store
+Thumbs.db
+desktop.ini
