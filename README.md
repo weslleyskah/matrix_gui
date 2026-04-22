@@ -6,13 +6,13 @@ A simple C++ application to perform matrix operations.
 
 ### Download
 
-[matrix_gui.exe](https://github.com/weslleyskah/matrix_gui/releases)
+[MatrixGui.exe](https://github.com/weslleyskah/matrix_gui/releases)
 
 ### Run
 
 > Run `scripts/build.bat` to generate the `.sln` file.
 
-> Run `matrix_gui\build\Debug\matrixGui.exe` or
+> Run `matrix_gui\build\Debug\MatrixGui.exe` or
 
 > Open the `.sln` file and run the code on Visual Studio.
 
