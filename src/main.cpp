@@ -692,6 +692,10 @@ int main() {
             static std::vector<std::vector<double>> matMN3;
             static std::vector<std::vector<double>> matMN4;
 
+            static Eigen::MatrixXd matMNInv;
+            static bool hasInvMN = false;
+            static bool invMNComputed = false;
+
             int prevRows = rows, prevCols = cols;
             ImGui::SetNextItemWidth(80); ImGui::InputInt("Rows##mn", &rows);
             ImGui::SameLine();
@@ -699,12 +703,16 @@ int main() {
 
             if (rows < 1) rows = 1; if (cols < 1) cols = 1;
             if (rows != prevRows || cols != prevCols) {
-                matMN.assign(rows, std::vector<double>(cols, 0.0));
-                g_BufferMap["MN"].clear();
+                matMN.resize(rows);
+                for (int i = 0; i < rows; i++)
+                    matMN[i].resize(cols, 0.0);
+                
                 matMN3.clear();
+                matMN4.clear();
                 multiplicationValid = true;
                 hasDetMN = true;
                 detComputed = false;
+                invMNComputed = false;
             }
             
             DrawMatrixInputMxN("MN", matMN, rows, cols);
@@ -720,7 +728,9 @@ int main() {
 
             if (rows2 < 1) rows2 = 1; if (cols2 < 1) cols2 = 1;
             if (rows2 != prevRows2 || cols2 != prevCols2) {
-                matMN2.assign(rows2, std::vector<double>(cols2, 0.0));
+                matMN2.resize(rows2);
+                for (int i = 0; i < rows2; i++)
+                    matMN2[i].resize(cols2, 0.0);
                 matMN3.clear();
                 multiplicationValid = true;
             }
@@ -786,10 +796,6 @@ int main() {
             }
 
             ImGui::Separator();
-            static Eigen::MatrixXd matMNInv;
-            static bool hasInvMN = false;
-            static bool invMNComputed = false;
-
             if (ImGui::Button("Inversa##mn", ImVec2(200, 30) ))
             {
                 if (rows == cols)
