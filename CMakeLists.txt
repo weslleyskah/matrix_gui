@@ -26,10 +26,20 @@ set(IMGUI_SOURCES
 )
 
 # 4. Create Executable
-add_executable(${PROJECT_NAME} 
-    src/main.cpp 
-    ${IMGUI_SOURCES}
-)
+if(WIN32)
+    add_executable(${PROJECT_NAME} WIN32
+        src/main.cpp 
+        ${IMGUI_SOURCES}
+    )
+    if(MSVC)
+        target_link_options(${PROJECT_NAME} PRIVATE "/ENTRY:mainCRTStartup")
+    endif()
+else()
+    add_executable(${PROJECT_NAME}
+        src/main.cpp 
+        ${IMGUI_SOURCES}
+    )
+endif()
 
 # 5. Include Directories
 target_include_directories(${PROJECT_NAME} PRIVATE 

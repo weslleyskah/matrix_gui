@@ -547,15 +547,19 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
+        // Verificar se a janela está minimizada
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        if (width == 0 || height == 0) {
+            // Se minimizada, apenas aguarda novos eventos sem tentar renderizar
+            continue;
+        }
+
         if (g_SwapChainRebuild) {
-            int width, height;
-            glfwGetFramebufferSize(window, &width, &height);
-            if (width > 0 && height > 0) {
-                ImGui_ImplVulkan_SetMinImageCount((uint32_t)g_MinImageCount);
-                ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, &g_MainWindowData, g_QueueFamily, g_Allocator, width, height, (uint32_t)g_MinImageCount);
-                g_MainWindowData.FrameIndex = 0;
-                g_SwapChainRebuild = false;
-            }
+            ImGui_ImplVulkan_SetMinImageCount((uint32_t)g_MinImageCount);
+            ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, &g_MainWindowData, g_QueueFamily, g_Allocator, width, height, (uint32_t)g_MinImageCount);
+            g_MainWindowData.FrameIndex = 0;
+            g_SwapChainRebuild = false;
         }
 
         ImGui_ImplVulkan_NewFrame();
