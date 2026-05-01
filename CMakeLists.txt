@@ -29,6 +29,8 @@ set(IMGUI_SOURCES
 if(WIN32)
     add_executable(${PROJECT_NAME} WIN32
         src/main.cpp 
+        src/vulkan_setup.cpp
+        src/app_functions.cpp
         ${IMGUI_SOURCES}
     )
     if(MSVC)
@@ -37,6 +39,8 @@ if(WIN32)
 else()
     add_executable(${PROJECT_NAME}
         src/main.cpp 
+        src/vulkan_setup.cpp
+        src/app_functions.cpp
         ${IMGUI_SOURCES}
     )
 endif()
