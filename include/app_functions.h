@@ -31,3 +31,7 @@ void DrawSystemInput(const char* id, Eigen::MatrixXd& A, Eigen::VectorXd& b);
 void DrawMatrixResult3x3(const char* id, double mat[3][3]);
 void DrawMatrixResultMxN(const char* id, const std::vector<std::vector<double>>& mat);
 void DrawMatrixResultEigen(const char* id, const Eigen::MatrixXd& mat);
+
+// --- Vectors ---
+void DrawVectorInput(const char* id, Eigen::VectorXd& vec);
+void DrawVectorResult(const char* id, const Eigen::VectorXd& vec);

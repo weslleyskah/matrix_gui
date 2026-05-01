@@ -3,6 +3,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <numeric>
+#include <sstream>
 
 // ============================================================
 // Shared buffer map
@@ -432,4 +433,119 @@ void DrawMatrixResultEigen(const char* id, const Eigen::MatrixXd& mat) {
         }
     }
     ImGui::Dummy(ImVec2((float)mat.cols() * 105, (float)mat.rows() * (cellHeight + 4)));
+}
+
+// ============================================================
+// Vectors
+// ============================================================
+
+void DrawVectorInput(const char* id, Eigen::VectorXd& vec) {
+    
+    // Persistent array of strings to hold what the user types
+    // static char buffers[10][64] = { "" };
+    
+	// Buffers for multiple vectors, stored in a map keyed by the vector's ID
+    // A global/static map that stores buffers for every unique 'id'
+    // Format: map<VectorID, vector<ArrayOf64Chars>>
+    static std::map<std::string, std::vector<std::array<char, 64>>> vectorBuffers;
+    auto& vectorbuffer = vectorBuffers[id];
+
+    // Ensure the buffer list matches the vector size
+    if (vectorbuffer.size() != (size_t)vec.size()) {
+        vectorbuffer.resize(vec.size());
+    }
+
+    // KeyArrow
+    // Track focus per vector ID
+    static std::string activeFocusId = "";
+    static int focusIndex = -1;
+
+    // Display the vector in a single line as a tuple
+    std::stringstream ss;
+    ss << id << " = (";
+    for (int i = 0; i < vec.size(); i++) {
+        ss << valueToFraction(vec(i));
+        if (i < vec.size() - 1) ss << ", ";
+    }
+    ss << ")";
+    ImGui::Text("%s", ss.str().c_str());
+
+    // Add/Subtract Buttons
+    
+    // Button IDs
+    std::string addBtnId = "+##" + std::string(id);
+    std::string subBtnId = "-##" + std::string(id);
+
+    if (ImGui::Button(addBtnId.c_str())) {
+        if (vec.size() < 10) {
+            int oldSize = (int)vec.size();
+            vec.conservativeResize(oldSize + 1);
+            vec(oldSize) = 0.0;
+            vectorbuffer.resize(vec.size());
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(subBtnId.c_str())) {
+        if (vec.size() > 3) {
+            vec.conservativeResize(vec.size() - 1);
+            vectorbuffer.resize(vec.size());
+        }
+    }
+    ImGui::SameLine();
+    //ImGui::Text("Size: %d", (int)vec.size());
+
+    for (int i = 0; i < vec.size(); i++)
+    {
+        // Unique ID for each box
+        std::string unique_id = "##" + std::string(id) + std::to_string(i);
+
+        // Size of each cell
+        ImGui::SetNextItemWidth(100.0f);
+
+		// KeyArrow
+        // Only apply focus if the ID matches this vector
+        if (activeFocusId == id && focusIndex == i) {
+            ImGui::SetKeyboardFocusHere();
+            focusIndex = -1;
+            activeFocusId = "";
+        }
+
+        // Updates buffers[i] directly as the user types
+        if (ImGui::InputText(unique_id.c_str(), vectorbuffer[i].data(), 64))
+        {
+            // Parse the fraction
+            try {
+                vec(i) = parseFraction(std::string(vectorbuffer[i].data()));
+            }
+            catch (...) {
+				// Only parse valid fractions, ignore invalid input
+            }
+        }
+
+        // KeyArrow
+        if (ImGui::IsItemFocused()) {
+            if (ImGui::IsKeyPressed(ImGuiKey_RightArrow) && i < vec.size() - 1) {
+                focusIndex = i + 1;
+                activeFocusId = id; 
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow) && i > 0) {
+                focusIndex = i - 1;
+                activeFocusId = id; 
+            }
+        }
+
+        ImGui::SameLine();
+    }
+    ImGui::Spacing();
+}
+
+void DrawVectorResult(const char* id, const Eigen::VectorXd& vec) {
+    std::stringstream ss;
+    ss << id << " = (";
+    for (int i = 0; i < vec.size(); i++) {
+        ss << valueToFraction(vec(i));
+        if (i < vec.size() - 1) ss << ", ";
+    }
+    ss << ")";
+    ImGui::Text("%s", ss.str().c_str());
 }

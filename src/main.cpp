@@ -135,7 +135,7 @@ int main() {
         PushWindowStyle();
         PushButtonStyle();
 
-        ImGui::Begin("Matrix Operations: Multiplication, Determinant, Row Echelon, Inverse", nullptr,
+        ImGui::Begin("Matrices and Vectors", nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
         // ----------------------------------------------------------------
@@ -466,11 +466,119 @@ int main() {
         }
 
         // ----------------------------------------------------------------
-        // Vectors (placeholder)
+        // Vectors
         // ----------------------------------------------------------------
         if (ImGui::CollapsingHeader("Vectors", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            // Vectors
+            static Eigen::VectorXd v(3);
+			static Eigen::VectorXd u(3);
+			static Eigen::VectorXd w(3);
+            static Eigen::VectorXd crossProduct(3);
+
+            // Initialize vectors with 0 once
+            static bool initializedVectors = false;
+            if (!initializedVectors) {
+                v.setZero();
+                u.setZero();
+                w.setZero();
+                crossProduct.setZero();
+                initializedVectors = true;
+            }
+
+			// Vector Input
+            DrawVectorInput("v", v);
+            DrawVectorInput("u", u);
+            DrawVectorInput("w", w);
+
+            // Cross Product
+			static bool crossproduct = false;
+            if (ImGui::Button("Cross Product", ImVec2(200, 30)))
+            {
+                crossproduct = true;
+            }
+            if(crossproduct)
+            {
+                if (v.size() == 3 && u.size() == 3) {
+                    crossProduct = v.head<3>().cross(u.head<3>());
+                    DrawVectorResult("v x u = ", crossProduct);
+                }
+                else {
+                    ImGui::TextDisabled("Cross product requires size 3!");
+				}
+            }
+
+            // Dot Product
+			static bool dotproduct = false;
+            if (ImGui::Button("Dot Product", ImVec2(200, 30)))
+            {
+				dotproduct = true;
+            }
+            if (dotproduct)
+            {
+                if (v.size() == u.size())
+                {
+                    double dotProduct = v.dot(u);
+                    std::string fractionStr = valueToFraction(dotProduct);
+                    ImGui::Text("v . u = %s", fractionStr.c_str());
+                }
+                else {
+                    ImGui::TextDisabled("Dot product requires equal sizes!");
+                }
+            }
+
+            // Triple Scalar Product
+			static bool tripleproduct = false;
+            if(ImGui::Button("Triple Scalar Product", ImVec2(200,30)))
+            {
+                tripleproduct = true;
+            }
+            if(tripleproduct)
+            {
+                if (v.size() == 3 && u.size() == 3 && w.size() == 3) {
+                    double tripleProduct = v.dot(u.head<3>().cross(w.head<3>()));
+                    std::string fractionStr = valueToFraction(tripleProduct);
+                    ImGui::Text("v . (u x w) = %s", fractionStr.c_str());
+                }
+                else {
+                    ImGui::TextDisabled("Triple scalar product requires size 3!");
+                }
+            }
+
+            // Angle between vectors
+			static bool anglebetween = false;
+            if(ImGui::Button("Angle Between Vectors", ImVec2(200,30)))
+            {
+                anglebetween = true;
+            }
+            if(anglebetween)
+            {
+                if (v.size() == u.size())
+                {
+                    double dotProduct = v.dot(u);
+                    double magnitudeV = v.norm();
+                    double magnitudeU = u.norm();
+                    if (magnitudeV > 0 && magnitudeU > 0)
+                    {
+						double cosTheta = dotProduct / (magnitudeV * magnitudeU);
+                        if (cosTheta > 1.0) cosTheta = 1.0; // limite
+                        if (cosTheta < -1.0) cosTheta = -1.0;
+                        double angle = std::acos(cosTheta);
+                        double angle_degrees = angle * (180.0 / 3.14159);
+                        ImGui::Text("Angle (v, u) = %.2f degrees", angle_degrees);
+                    }
+                    else {
+						ImGui::TextDisabled("Cannot calculate angle with a vector of magnitude 0!");
+                    }
+                }
+                else {
+                    ImGui::TextDisabled("Angle calculation requires equal sizes!");
+                }
+            }
+
         }
+
+        // ImGui::ShowDemoWindow();
 
         PopButtonStyle();
         ImGui::End();
