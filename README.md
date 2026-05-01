@@ -10,22 +10,25 @@ A simple C++ application to perform matrix operations.
 
 ### Run
 
-> Run `scripts/build.bat` to generate the `.sln` file.
+> Run `scripts/build.bat` to generate the `build`
 
-> Run `matrix_gui\build\Debug\MatrixGui.exe` or
+> Run `matrix_gui/build/Debug/MatrixGui.exe`
 
-> Open the `.sln` file and run the code on Visual Studio.
+> Open the `matrix_gui/build/MatrixGui.slnx`, set `MakeGui.sln` as startup project, and run the code on Visual Studio
 
 ### Dependencies
 
+- CMAKE
 - [Vulkan](https://vulkan.lunarg.com/sdk/home#windows)
-- [ImGui](https://github.com/ocornut/imgui) + GLFW 
+- [ImGui](https://github.com/ocornut/imgui)
+- GLFW
 - [Eigen](https://libeigen.gitlab.io/)
 
 ### Structure
 
 | | |
 | :--- | :--- |
-| `src/main.cpp` | application |
+| `src/` | application |
 | `dependencies/` | dependencies |
-| `scripts/build.bat` | build |
+| `scripts/` | build |
+| `CMakeLists.txt` | build |
