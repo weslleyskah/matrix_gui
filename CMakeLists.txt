@@ -1,20 +1,20 @@
+# CMake version
 cmake_minimum_required(VERSION 3.10)
+
+# Project Name
 project(MatrixGui)
 
+# C++ 17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. Find Dependencies
+# 1. Vulkan
 find_package(Vulkan REQUIRED)
 
-# 2. Local GLFW Source
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "GLFW examples" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW tests" FORCE)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW docs" FORCE)
-set(GLFW_INSTALL OFF CACHE BOOL "GLFW install" FORCE)
+# 2. GLFW 
 add_subdirectory(dependencies/GLFW)
 
-# 3. ImGui Source Files
+# 3. ImGui
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/imgui)
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp
