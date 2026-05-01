@@ -1,8 +1,8 @@
 # Matrix GUI
 
-A simple C++ application to perform matrix operations.
+A C++ application to perform matrix and vector operations.
 
-![Screenshot](img/matrix_gui.png)
+![Screen](img/matrix_gui.png)
 
 ### Download
 
@@ -26,9 +26,8 @@ A simple C++ application to perform matrix operations.
 
 ### Structure
 
-| | |
+| Folder | Description |
 | :--- | :--- |
 | `src/` | application |
 | `dependencies/` | dependencies |
 | `scripts/` | build |
-| `CMakeLists.txt` | build |
