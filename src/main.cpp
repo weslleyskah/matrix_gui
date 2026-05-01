@@ -1,5 +1,6 @@
 #include "vulkan_setup.h"
 #include "app_functions.h"
+#include "Roboto-Regular.embed.h"
 
 #include <iostream>
 #include <vector>
@@ -33,7 +34,8 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui::StyleColorsDark();
 
-    // Load font with multiple path attempts
+    // Load font
+    /*
     std::vector<std::string> font_paths = {
         "dependencies/font/Roboto/static/Roboto-Regular.ttf",
         "../dependencies/font/Roboto/static/Roboto-Regular.ttf",
@@ -52,6 +54,19 @@ int main() {
     if (!robotoFont) {
         std::cerr << "Warning: Could not load Roboto-Regular.ttf from any searched path. Using default font.\n";
         std::cerr << "Current working directory: " << std::filesystem::current_path() << "\n";
+    } else {
+        io.FontDefault = robotoFont;
+    }
+    */
+    ImFontConfig font_cfg;
+    font_cfg.FontDataOwnedByAtlas = false;
+    
+    ImFont* robotoFont = io.Fonts->AddFontFromMemoryTTF(
+        const_cast<uint8_t*>(g_RobotoRegular), sizeof(g_RobotoRegular), 18.0f, &font_cfg
+    );
+    
+    if (!robotoFont) {
+        std::cerr << "Warning: Could not load embedded Roboto font. Using default.\n";
     } else {
         io.FontDefault = robotoFont;
     }
