@@ -11,6 +11,13 @@
 
 #include <Eigen/Dense>
 
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/ext/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale
+#include <glm/ext/matrix_clip_space.hpp> // glm::perspective
+#include <glm/ext/scalar_constants.hpp> // glm::pi
+
 int main() {
     if (!glfwInit()) return 1;
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -135,8 +142,9 @@ int main() {
         PushWindowStyle();
         PushButtonStyle();
 
-        ImGui::Begin("Matrices and Vectors", nullptr,
-            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+        // ImGui::Begin("Matrices and Vectors", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+        ImGui::Begin("Matrices and Vectors", nullptr);
 
         // ----------------------------------------------------------------
         // Matrix 3x3
@@ -247,6 +255,7 @@ int main() {
             static int rows = 3, cols = 3;
             static std::vector<std::vector<double>> matMN(rows, std::vector<double>(cols, 0.0));
             static double detMN = 0.0;
+			static std::string detMNFrac = "";
             static bool hasDetMN = true;
             static bool detComputed = false;
             static bool multiplicationValid = true;
@@ -319,6 +328,7 @@ int main() {
                 if (rows == cols) {
                     try {
                         detMN = determinant(matMN);
+                        detMNFrac = valueToFraction(detMN);
                         hasDetMN = true;
                         detComputed = true;
                     } catch (const std::exception&) {
@@ -333,7 +343,7 @@ int main() {
             if (!hasDetMN)
                 ImGui::TextDisabled("Determinante: Apenas para matrizes quadradas.");
             else if (detComputed)
-                ImGui::Text("Determinante (Gauss): %.2f", detMN);
+                ImGui::Text("Determinante (Gauss): %s", detMNFrac.c_str());
 
             ImGui::Separator();
             if (ImGui::Button("Inversa##mn", ImVec2(200, 30))) {
@@ -574,6 +584,103 @@ int main() {
                 else {
                     ImGui::TextDisabled("Angle calculation requires equal sizes!");
                 }
+            }
+
+			// Visualization of vectors in 3D space
+            
+            // --- CANVAS ---
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            ImVec2 canvas_pos = ImGui::GetCursorScreenPos();      // Top-left of drawing area
+            ImVec2 canvas_size = ImVec2(ImGui::GetContentRegionAvail().x, 800.0f); // height
+            ImGui::InvisibleButton("canvas", canvas_size);       
+
+            // --- CAMERA MATRIX ---
+            static float camDist = 10.0f;
+            static glm::vec2 camRot = { 0.5f, 0.5f }; 
+            float aspect = canvas_size.x / canvas_size.y;
+			glm::mat4 mvp = camera(camDist, camRot); // model view projection matrix
+
+			// --- CAMERA MOVEMENT ---
+            //ImGui::SliderFloat("Zoom", &camDist, 2.0f, 50.0f);
+            //ImGui::SliderFloat("Rotation X", &camRot.x, -3.14f, 3.14f);
+            //ImGui::SliderFloat("Rotation Y", &camRot.y, -1.57f, 1.57f);
+
+            ImGuiIO& io = ImGui::GetIO();
+
+            if (ImGui::IsItemHovered()) {
+
+                // Zoom
+                if (io.MouseWheel != 0) {
+                    camDist -= io.MouseWheel * 1.5f;
+                    if (camDist < 2.0f) camDist = 2.0f; 
+                }
+
+				// Rotation
+                if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+                    ImVec2 delta = io.MouseDelta;
+
+					// Increment rotation 
+                    camRot.x += delta.x * 0.01f;
+                    camRot.y -= delta.y * 0.01f;
+
+                    // Vertica rotation limits
+                    if (camRot.y > 1.57f) camRot.y = 1.57f;
+                    if (camRot.y < -1.57f) camRot.y = -1.57f;
+                }
+            }
+
+            // --- GRID (XYZ PLANE) ---
+            int gridSize = 5; // Draws from -5 to 5
+            ImU32 gridColor = IM_COL32(200, 200, 200, 40); // Faint gray
+
+            for (int i = -gridSize; i <= gridSize; i++) {
+
+				// XY plane lines
+                // Lines parallel to X axis
+                ImVec2 p1 = WorldToScreen(glm::vec3(i, -gridSize, 0), mvp, canvas_pos, canvas_size);
+                ImVec2 p2 = WorldToScreen(glm::vec3(i, gridSize, 0), mvp, canvas_pos, canvas_size);
+                draw_list->AddLine(p1, p2, gridColor);
+                // Lines parallel to Y axis
+                ImVec2 p3 = WorldToScreen(glm::vec3(-gridSize, i, 0), mvp, canvas_pos, canvas_size);
+                ImVec2 p4 = WorldToScreen(glm::vec3(gridSize, i, 0), mvp, canvas_pos, canvas_size);
+                draw_list->AddLine(p3, p4, gridColor);
+
+				// XZ plane lines
+                ImVec2 p5 = WorldToScreen(glm::vec3(i, 0, -gridSize), mvp, canvas_pos, canvas_size);
+                ImVec2 p6 = WorldToScreen(glm::vec3(i, 0, gridSize), mvp, canvas_pos, canvas_size);
+                draw_list->AddLine(p5, p6, gridColor);
+                ImVec2 p7 = WorldToScreen(glm::vec3(-gridSize, 0, i), mvp, canvas_pos, canvas_size);
+                ImVec2 p8 = WorldToScreen(glm::vec3(gridSize, 0, i), mvp, canvas_pos, canvas_size);
+				draw_list->AddLine(p7, p8, gridColor);
+            }
+
+            // --- DRAW AXES (X=Red, Y=Green, Z=Blue) ---
+            ImVec2 origin = WorldToScreen(glm::vec3(0, 0, 0), mvp, canvas_pos, canvas_size);
+            ImVec2 xAxis = WorldToScreen(glm::vec3(gridSize, 0, 0), mvp, canvas_pos, canvas_size);
+            ImVec2 yAxis = WorldToScreen(glm::vec3(0, gridSize, 0), mvp, canvas_pos, canvas_size);
+            ImVec2 zAxis = WorldToScreen(glm::vec3(0, 0, gridSize), mvp, canvas_pos, canvas_size);
+
+            draw_list->AddLine(origin, xAxis, IM_COL32(255, 0, 0, 255), 2.0f);
+            draw_list->AddLine(origin, yAxis, IM_COL32(0, 255, 0, 255), 2.0f);
+            draw_list->AddLine(origin, zAxis, IM_COL32(0, 0, 255, 255), 2.0f);
+
+            // --- DRAW VECTORS ---
+            
+            auto DrawEigenVec = [&](Eigen::VectorXd& v, ImU32 color, const char* label) {
+                if (v.size() >= 3) {
+                    glm::vec3 v_glm(v[0], v[1], v[2]);
+                    ImVec2 end = WorldToScreen(v_glm, mvp, canvas_pos, canvas_size);
+                    draw_list->AddLine(origin, end, color, 3.0f);
+                    draw_list->AddText(end, color, label);
+                }
+                };
+
+            DrawEigenVec(v, IM_COL32(255, 255, 0, 255), "v");
+            DrawEigenVec(u, IM_COL32(0, 255, 255, 255), "u");
+            DrawEigenVec(w, IM_COL32(255, 0, 255, 255), "w");
+            if (crossproduct) {
+                Eigen::VectorXd crossVec = v.head<3>().cross(u.head<3>());
+                DrawEigenVec(crossVec, IM_COL32(255, 0, 255, 255), "v x u");
             }
 
         }

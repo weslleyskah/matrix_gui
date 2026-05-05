@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <Eigen/Dense>
+#include <glm/glm.hpp>
 
 // --- Shared buffer map ---
 extern std::unordered_map<std::string, std::vector<std::vector<std::string>>> g_BufferMap;
@@ -35,3 +36,7 @@ void DrawMatrixResultEigen(const char* id, const Eigen::MatrixXd& mat);
 // --- Vectors ---
 void DrawVectorInput(const char* id, Eigen::VectorXd& vec);
 void DrawVectorResult(const char* id, const Eigen::VectorXd& vec);
+
+// --- Camera --- 
+glm::mat4 camera(float Translate, glm::vec2 const& Rotate);
+ImVec2 WorldToScreen(glm::vec3 worldPos, glm::mat4 mvp, ImVec2 canvasPos, ImVec2 canvasSize);

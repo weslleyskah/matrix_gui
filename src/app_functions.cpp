@@ -5,6 +5,13 @@
 #include <numeric>
 #include <sstream>
 
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/ext/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale
+#include <glm/ext/matrix_clip_space.hpp> // glm::perspective
+#include <glm/ext/scalar_constants.hpp> // glm::pi
+
 // ============================================================
 // Shared buffer map
 // ============================================================
@@ -548,4 +555,34 @@ void DrawVectorResult(const char* id, const Eigen::VectorXd& vec) {
     }
     ss << ")";
     ImGui::Text("%s", ss.str().c_str());
+}
+
+// ============================================================
+// Camera
+// ============================================================
+
+glm::mat4 camera(float Translate, glm::vec2 const& Rotate)
+{
+    glm::mat4 Projection = glm::perspective(glm::pi<float>() * 0.25f, 4.0f / 3.0f, 0.1f, 100.f);
+    glm::mat4 View = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -Translate));
+    View = glm::rotate(View, Rotate.y, glm::vec3(-1.0f, 0.0f, 0.0f));
+    View = glm::rotate(View, Rotate.x, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+    return Projection * View * Model;
+}
+
+ImVec2 WorldToScreen(glm::vec3 worldPos, glm::mat4 mvp, ImVec2 canvasPos, ImVec2 canvasSize) {
+    // 1. Transform to Clip Space
+    glm::vec4 clipPos = mvp * glm::vec4(worldPos, 1.0f);
+
+	// Scale distance to camera to get normalized device coordinates (zoom out smaller / zoom in bigger)
+    if (clipPos.w != 0.0f) {
+        clipPos /= clipPos.w;
+    }
+
+    // Map Vector coordinates to pixel coordinates in screen space
+    float x = (clipPos.x + 1.0f) * 0.5f * canvasSize.x + canvasPos.x;
+    float y = (1.0f - clipPos.y) * 0.5f * canvasSize.y + canvasPos.y;
+
+    return ImVec2(x, y);
 }
